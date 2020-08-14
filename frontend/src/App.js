@@ -12,9 +12,15 @@ import { useAuth } from './hooks/use-auth';
 import { usePlayer } from './hooks/use-player.js';
 
 const Styled = styled.div`
-  ${'' /* display: flex;
-  align-items: flex-start; */}
-  padding: 0px 20px;
+  display: flex;
+  justify-content: space-between;
+  /* align-items: flex-start; */
+  flex-wrap: wrap;
+  padding: 0px 20px 20px;
+
+  > div:not(:last-child) {
+    margin-right: 20px;
+  }
 `;
 
 function App() {

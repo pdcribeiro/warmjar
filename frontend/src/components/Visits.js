@@ -4,7 +4,7 @@ import { usePlayer } from '../hooks/use-player';
 
 export function VisitList({ siteID, pageID }) {
   const [visits, setVisits] = useState([]);
-  const { setVisit } = usePlayer();
+  const { visit, setVisit } = usePlayer();
 
   useEffect(() => {
     let query = '';
@@ -23,13 +23,16 @@ export function VisitList({ siteID, pageID }) {
     <>
       <h2>Visits</h2>
       <ul>
-        {visits.map(visit => (
+        {visits.map(v => (
           <li
-            key={visit.id}
-            onClick={() => handleClick(visit.id)}
-            style={{ cursor: 'pointer' }}
+            key={v.id}
+            onClick={() => handleClick(v.id)}
+            style={{
+              backgroundColor: v.id === visit ? 'lightgrey' : '',
+              cursor: 'pointer',
+            }}
           >
-            Page '{visit.page}' on {visit.started}
+            Page '{v.page}' on {v.started}
           </li>
         ))}
       </ul>

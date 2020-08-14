@@ -24,9 +24,8 @@ let actionIndex = 0;
 function useProvidePlayer() {
   const [visit, setVisit] = useState(null);
   const [playing, setPlaying] = useState(false);
-  const [mousePosition, setMousePosition] = useState({ y: -20 });
+  const [mousePosition, setMousePosition] = useState({});
   const [mouseDown, setMouseDown] = useState(false);
-  // const [keys, setKeys] = useState([]);
 
   useEffect(() => {
     if (visit) {
@@ -35,21 +34,25 @@ function useProvidePlayer() {
         .then(response => {
           actions = response.data.results;
           // console.log(actions.slice(0, 10));
-
-          const firstMouseMoveAction = actions.find(a => a.type === 'mm');
-          if (firstMouseMoveAction) {
-            playAction(firstMouseMoveAction);
-          }
+          reset();
         });
     }
   }, [visit]);
+
+  function reset() {
+    setMouseDown(false);
+    const firstMouseMoveAction = actions.find(a => a.type === 'mm');
+    if (firstMouseMoveAction) {
+      playAction(firstMouseMoveAction);
+    }
+  }
 
   function play() {
     if (!playing && actions) {
       startedPlaying = new Date();
       timer = setInterval(playActions, 10);
       setPlaying(true);
-      console.log('Started playing.');
+      // console.log('Started playing.');
     }
   }
 
@@ -87,7 +90,7 @@ function useProvidePlayer() {
     }
 
     // Finished playing actions.
-    console.log('Finished playing.');
+    // console.log('Finished playing.');
     clearInterval(timer);
     actionIndex = 0;
     setPlaying(false);
@@ -100,8 +103,6 @@ function useProvidePlayer() {
       mm: action => setMousePosition(action),
       md: () => setMouseDown(true),
       mu: () => setMouseDown(false),
-      // kd: value => setKeys(keys => keys.concat(value.key)),
-      // ku: value => setKeys(keys => keys.filter(k => k !== value.key)),
     }[action.type];
 
     if (actionFunction) {
@@ -114,17 +115,17 @@ function useProvidePlayer() {
 
   function stop() {
     clearInterval(timer);
-    playAction(actions[0]); //TODO play first mouse move action only
+    reset();
     actionIndex = 0;
     setPlaying(false);
-    console.log('Stopped playing.');
+    // console.log('Stopped playing.');
   }
 
   // TODO Pause logic
   function pause() {
     clearInterval(timer);
     setPlaying(false);
-    console.log('Paused playing.');
+    // console.log('Paused playing.');
   }
 
   return {
@@ -132,7 +133,6 @@ function useProvidePlayer() {
     setVisit,
     playing,
     mouse: { position: mousePosition, down: mouseDown },
-    // keys,
     play,
     pause,
     stop,
