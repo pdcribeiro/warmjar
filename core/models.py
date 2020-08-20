@@ -1,3 +1,5 @@
+import re
+
 from datetime import datetime
 from django.conf import settings
 from django.db import models
@@ -14,35 +16,48 @@ models.Manager.get_or_none = get_or_none
 
 
 class Site(models.Model):
-    name = models.CharField(max_length=100)
+    url = models.CharField(max_length=100, unique=True)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL,
                               on_delete=models.CASCADE, related_name='sites')
 
     class Meta:
-        ordering = ['owner__username', 'name']
+        ordering = ['owner__username', 'url']
 
     def __str__(self):
-        return self.name
+        return self.url
+
+    def get_visits(self):
+        return Visit.objects.filter(page__site=self, previous=None)
+
+    @staticmethod
+    def parse_url(url):
+        match = re.search('(https?://)?(www.)?([^/]+)/', url)
+        return match and match.group(3)
 
 
 class Page(models.Model):
-    page_url = models.URLField(unique=True)
+    path = models.CharField(max_length=200, unique=True)
     site = models.ForeignKey(
         Site, on_delete=models.CASCADE, related_name='pages')
 
     class Meta:
-        ordering = ['site', 'page_url']
+        ordering = ['site', 'path']
 
     def __str__(self):
-        return self.page_url
+        return self.url
+
+    @staticmethod
+    def parse_url(url):
+        match = re.search('(https?://)?(www.)?[^/]+/([^\?]+)\??', url)
+        return match and match.group(3).rstrip('/')
 
 
 class Visit(models.Model):
     started = models.DateTimeField(auto_now_add=True)
     page = models.ForeignKey(
         Page, on_delete=models.CASCADE, related_name='visits')
-    next = models.OneToOneField(
-        'self', on_delete=models.CASCADE, null=True, related_name='previous')
+    previous = models.OneToOneField(
+        'self', on_delete=models.CASCADE, null=True, related_name='next')
 
     class Meta:
         ordering = ['page', '-started']

@@ -21,15 +21,15 @@ function SiteList() {
     axios.get('/api/sites/').then(response => setSites(response.data.results));
   }, []);
 
+  useEffect(() => console.log('sites: ', sites), [sites]);
+
   return (
     <>
       <h2>Sites</h2>
       <ul>
         {sites.map(site => (
           <li key={site.id}>
-            <a href={site.url.replace('api/', '').replace(':8000', ':3000')}>
-              {site.name}
-            </a>
+            <a href={'/sites/' + site.id}>{site.url}</a>
           </li>
         ))}
       </ul>
@@ -38,11 +38,24 @@ function SiteList() {
 }
 
 function SiteDetail({ siteID }) {
+  const [site, setSite] = useState(null);
+
+  useEffect(() => {
+    axios.get('/api/sites/' + siteID).then(response => setSite(response.data));
+  }, []);
+
+  useEffect(() => console.log('site: ', site), [site]);
+
+  if (site === null) {
+    return <p>Loading...</p>;
+  }
+
+  const { url, pages, visits } = site;
   return (
     <>
-      {/* TODO Site info */}
-      <PageList siteID={siteID} />
-      <VisitList siteID={siteID} />
+      <h2>{url}</h2>
+      <PageList pages={pages} />
+      <VisitList visits={visits} />
     </>
   );
 }

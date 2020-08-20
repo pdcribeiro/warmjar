@@ -1,19 +1,18 @@
 import axios from 'axios';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
+import styled from 'styled-components';
+
 import { usePlayer } from '../hooks/use-player';
 
-export function VisitList({ siteID, pageID }) {
-  const [visits, setVisits] = useState([]);
+const Visit = styled.li`
+  ${props => (props.selected ? 'background-color: lightgrey;' : '')}
+  cursor: pointer;
+`;
+
+export function VisitList({ visits }) {
   const { visit, setVisit } = usePlayer();
 
-  useEffect(() => {
-    let query = '';
-    if (siteID) query = 'site=' + siteID;
-    else if (pageID) query = 'page=' + pageID;
-    axios
-      .get('/api/visits?' + query)
-      .then(response => setVisits(response.data.results));
-  }, [siteID, pageID]);
+  useEffect(() => () => setVisit(null), []);
 
   function handleClick(visit) {
     setVisit(prevVisit => (visit !== prevVisit ? visit : null));
@@ -24,16 +23,13 @@ export function VisitList({ siteID, pageID }) {
       <h2>Visits</h2>
       <ul>
         {visits.map(v => (
-          <li
+          <Visit
+            selected={v.id === visit}
             key={v.id}
             onClick={() => handleClick(v.id)}
-            style={{
-              backgroundColor: v.id === visit ? 'lightgrey' : '',
-              cursor: 'pointer',
-            }}
           >
-            Page '{v.page}' on {v.started}
-          </li>
+            [{v.id}] {v.started}
+          </Visit>
         ))}
       </ul>
     </>

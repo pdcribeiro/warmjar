@@ -10,16 +10,19 @@ class IsSiteOwner(permissions.BasePermission):
             return False
 
         view_name = view.__class__.__name__
+
         if view_name == 'VisitList':
             page_id = request.query_params.get('page')
             if page_id is not None:
                 page = Page.objects.get(id=page_id)
                 return request.user == page.site.owner
+
         if view_name in ['PageViewSet', 'VisitList']:
             site_id = request.query_params.get('site')
             if site_id is not None:
                 site = Site.objects.get(id=site_id)
                 return request.user == site.owner
+
         if view_name == 'ActionList':
             visit_id = request.query_params.get('visit')
             if visit_id is not None:
@@ -31,12 +34,16 @@ class IsSiteOwner(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         if isinstance(obj, Site):
             return request.user == obj.owner
+
         if isinstance(obj, Page):
             return request.user == obj.site.owner
+
         if isinstance(obj, Visit):
             return request.user == obj.page.site.owner
+
         if isinstance(obj, Action):
             return request.user == obj.visit.page.site.owner
+
         return False
 
 

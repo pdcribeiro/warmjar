@@ -1,5 +1,5 @@
 import axios from 'axios';
-import React, { useRef } from 'react';
+import React from 'react';
 import styled from 'styled-components';
 
 import { useCSRFToken } from '../hooks/use-csrf-token';
@@ -22,36 +22,36 @@ const Styled = styled.div`
 `;
 
 export function Login({ checkAuth }) {
-  const formRef = useRef(null);
   const csrfToken = useCSRFToken();
 
-  function login() {
-    const loginData = new FormData(formRef.current);
+  function handleSubmit(event) {
+    const loginData = new FormData(event.target);
     const config = { headers: { 'Content-Type': 'multipart/form-data' } };
     axios
       .post('/api/auth/login/', loginData, config)
       .then(checkAuth)
       .catch(error => console.log(error));
+    event.preventDefault();
   }
 
   return (
     <Styled>
-      <form action="" ref={formRef}>
+      <form onSubmit={handleSubmit}>
         <input type="hidden" name="csrfmiddlewaretoken" value={csrfToken} />
         <input
           type="text"
           name="username"
-          defaultValue="user1"
-          placeholder="Username"
+          defaultValue="user"
+          placeholder="username"
         />
         <input
           type="password"
           name="password"
-          defaultValue="useruser"
-          placeholder="Password"
+          defaultValue="user"
+          placeholder="password"
         />
+        <input type="submit" value="Login" />
       </form>
-      <button onClick={login}>Login</button>
     </Styled>
   );
 }
