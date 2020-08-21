@@ -3,18 +3,18 @@
 ## TODO
 
 WIP
-* fix delete visit 403
-* redo permissions
+* action view permissions
+* redo action view
 * tests
 
 Record
-* create pages automatically
 * handle different sized windows
   - send size on first api call
   - detect and send resize events
 * keep same visit after refresh
 
 Play
+* update list after delete
 
 General
 * tests
@@ -76,8 +76,10 @@ Play
 * paginate actions by 'performed' time?
 * improve player width responsiveness
 * use player content limiting dimension to handle portrait frames
+* confirm delete
 
 General
+* REST subscription? Long pooling? etc.
 * use GraphQL instead of REST
 
 

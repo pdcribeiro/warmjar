@@ -1,18 +1,19 @@
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import render
 from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework import status
 from rest_framework.exceptions import ParseError, ValidationError
 from rest_framework.generics import DestroyAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import IsAdminUser
+from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from .models import Action, Page, Site, Visit
 from .pagination import ActionsPagination
-from .permissions import IsSiteOwner, POSTOrIsSiteOwner
-from .serializers import (ActionSerializer, PageSerializer,
-                          SiteSerializer, UserSerializer, VisitSerializer)
+from .permissions import POSTOrIsAuthenticated
+from .serializers import (ActionSerializer, PageSerializer, SiteSerializer,
+                          UserSerializer, VisitSerializer)
 
 User = get_user_model()
 
@@ -31,7 +32,6 @@ class UserViewSet(ReadOnlyModelViewSet):
 
 
 class SiteViewSet(ModelViewSet):
-    permission_classes = [IsSiteOwner]
     serializer_class = SiteSerializer
 
     def get_queryset(self):
@@ -48,7 +48,6 @@ class SiteViewSet(ModelViewSet):
 
 
 class PageDetail(RetrieveUpdateDestroyAPIView):
-    permission_classes = [IsSiteOwner]
     serializer_class = PageSerializer
 
     def get_queryset(self):
@@ -56,15 +55,12 @@ class PageDetail(RetrieveUpdateDestroyAPIView):
 
 
 class VisitDelete(DestroyAPIView):
-    permission_classes = [IsSiteOwner]
-
     def get_queryset(self):
         return Visit.objects.filter(page__site__owner=self.request.user)
 
 
 class ActionList(ListCreateAPIView):
-    permission_classes = [POSTOrIsSiteOwner]
-    queryset = Action.objects.all()
+    permission_classes = [POSTOrIsAuthenticated]
     serializer_class = ActionSerializer
     pagination_class = ActionsPagination
 
@@ -73,7 +69,8 @@ class ActionList(ListCreateAPIView):
         if visit_id is None:
             raise ParseError()
 
-        return Action.objects.filter(visit=visit_id)
+        return Action.objects.filter(
+            visit=visit_id, visit__page__site__owner=self.request.user)
 
     def post(self, request):
         actions = ActionList.get_actions(request)
@@ -110,12 +107,12 @@ class ActionList(ListCreateAPIView):
 
     @staticmethod
     def get_page(url):
-        parsed_url = Page.parse_url(url)
-        if parsed_url is None:
+        path = Page.parse_path(url)
+        if path is None:
             raise ParseError()
 
-        print(f"searching page '{parsed_url}'...")
-        page = Page.objects.get_or_none(url=parsed_url)
+        print(f"searching page '{path}'...")
+        page = Page.objects.get_or_none(path=path)
         if page is not None:
             return page
 
@@ -128,4 +125,4 @@ class ActionList(ListCreateAPIView):
         if site is None:
             raise ParseError()
 
-        return Page.objects.create(url=parsed_url, site=site)
+        return Page.objects.create(path=path, site=site)

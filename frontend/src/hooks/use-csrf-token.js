@@ -6,16 +6,15 @@ export function useCSRFToken() {
   const [csrfToken, setCSRFToken] = useState('');
 
   useEffect(() => {
-    // if (process.env.NODE_ENV === 'production') {
-    //   setCSRFToken(Cookies.get('csrftoken'));
-    //   // csrfToken = Cookies.get('csrftoken');
-    // } else {
-      axios.get('/api/').then(() => {
-        setCSRFToken(Cookies.get('csrftoken'));
-        // csrfToken = Cookies.get('csrftoken');
-      });
-    // }
-  });
+    axios.get('/api/').then(() => {
+      setCSRFToken(Cookies.get('csrftoken'));
+    });
+  }, []);
+
+  // useEffect(() => {
+  //   axios.defaults.headers.post['X-CSRFToken'] = csrfToken;
+  //   axios.defaults.headers.delete['X-CSRFToken'] = csrfToken;
+  // }, [csrfToken]);
 
   return csrfToken;
 }

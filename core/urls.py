@@ -10,7 +10,7 @@ router.register(r'sites', views.SiteViewSet, basename='site')
 urlpatterns = [
     path('', views.index),
     path('', include(router.urls)),
-    path('pages/<int:pk>/', views.PageDetail.as_view(), name='page-detail'),
-    path('visits/<int:pk>/', views.VisitDelete.as_view(), name='visit-detail'),
+    path('pages/<int:pk>/', views.PageDetail.as_view()),
+    path('visits/<int:pk>/', views.VisitDelete.as_view()),
     path('actions/', views.ActionList.as_view()),
 ]

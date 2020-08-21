@@ -46,6 +46,7 @@ function App() {
       <Header checkAuth={auth.check} />
       <Styled>
         <Router>
+        {/* <Router style={{ width: '100%' }}> */}
           <Sites path="sites/*" />
           <PageDetail path="pages/:pageID" />
 

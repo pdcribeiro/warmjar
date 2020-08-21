@@ -44,10 +44,10 @@ class Page(models.Model):
         ordering = ['site', 'path']
 
     def __str__(self):
-        return self.url
+        return self.path
 
     @staticmethod
-    def parse_url(url):
+    def parse_path(url):
         match = re.search('(https?://)?(www.)?[^/]+/([^\?]+)\??', url)
         return match and match.group(3).rstrip('/')
 
