@@ -3,15 +3,16 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework import status
-from rest_framework.exceptions import ParseError, ValidationError
-from rest_framework.generics import DestroyAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework import generics, mixins  # TMP
+from rest_framework.exceptions import NotFound, ParseError, ValidationError
+from rest_framework.generics import CreateAPIView, DestroyAPIView, ListAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from .models import Action, Page, Site, Visit
 from .pagination import ActionsPagination
-from .permissions import POSTOrIsAuthenticated
+from .permissions import ActionsOrIsAuthenticated
 from .serializers import (ActionSerializer, PageSerializer, SiteSerializer,
                           UserSerializer, VisitSerializer)
 
@@ -20,18 +21,21 @@ User = get_user_model()
 
 @ensure_csrf_cookie
 def index(request):
+    """Provides frontend or CSRF token."""
     if request.path == '/api/':
         return HttpResponse()
     return render(request, 'build/index.html')
 
 
 class UserViewSet(ReadOnlyModelViewSet):
+    """Users read-only API."""
     permission_classes = [IsAdminUser]
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
 
 class SiteViewSet(ModelViewSet):
+    """Sites read/write API."""
     serializer_class = SiteSerializer
 
     def get_queryset(self):
@@ -48,81 +52,71 @@ class SiteViewSet(ModelViewSet):
 
 
 class PageDetail(RetrieveUpdateDestroyAPIView):
+    """Pages read/write API."""
     serializer_class = PageSerializer
 
     def get_queryset(self):
         return Page.objects.filter(site__owner=self.request.user)
 
 
-class VisitDelete(DestroyAPIView):
+class VisitCreate(CreateAPIView):
+    """Creates a visit with actions."""
+    permission_classes = [ActionsOrIsAuthenticated]
+    serializer_class = VisitSerializer
+
+    def post(self, request, *args, **kwargs):
+        response = self.create(request, *args, **kwargs)
+        response.data = {'visit': response.data['id']}
+        return response
+
+    def perform_create(self, serializer):
+        url = self.request.data.get('url')
+        if url is None:
+            raise ParseError()
+
+        page = VisitCreate.get_page(url)
+        serializer.save(page=page)
+
+    @staticmethod
+    def get_page(url):
+        """Retrieves or creates a page that matches url."""
+        site_url = Site.parse_url(url)
+        path = Page.parse_path(url)
+        if None in [site_url, path]:
+            raise ParseError()
+
+        print(f"searching page '{site_url}/{path}'...")
+        page = Page.objects.get_or_none(site__url=site_url, path=path)
+        if page is not None:
+            return page
+
+        print(f"searching site '{site_url}'...")
+        site = Site.objects.get_or_404(url=site_url)
+        return Page.objects.create(path=path, site=site)
+
+
+class VisitDetail(mixins.UpdateModelMixin, generics.DestroyAPIView):
+    """Adds actions to or deletes a visit."""
+    permission_classes = [ActionsOrIsAuthenticated]
+    serializer_class = VisitSerializer
+
     def get_queryset(self):
+        if self.request.method in ['POST', 'PATCH']:
+            return Visit.objects.all()
         return Visit.objects.filter(page__site__owner=self.request.user)
 
+    def patch(self, request, *args, **kwargs):
+        response = self.partial_update(request, *args, **kwargs)
+        response.data = {'visit': response.data['id']}
+        return response
 
-class ActionList(ListCreateAPIView):
-    permission_classes = [POSTOrIsAuthenticated]
+
+class ActionList(ListAPIView):
+    """Lists actions related to a visit."""
     serializer_class = ActionSerializer
     pagination_class = ActionsPagination
 
     def get_queryset(self):
-        visit_id = self.request.query_params.get('visit')
-        if visit_id is None:
-            raise ParseError()
-
         return Action.objects.filter(
-            visit=visit_id, visit__page__site__owner=self.request.user)
-
-    def post(self, request):
-        actions = ActionList.get_actions(request)
-
-        serializer = ActionSerializer(data=actions, many=True)
-        if not serializer.is_valid():
-            raise ValidationError(serializer.errors[0:5])
-
-        serializer.save()
-        data = {'visit': actions[0]['visit']}
-        return Response(data, status=status.HTTP_201_CREATED)
-
-    @staticmethod
-    def get_actions(request):
-        actions = request.data.get('actions')
-        if actions is None:
-            raise ParseError()
-
-        visit_id = actions[0].get('visit')
-        if visit_id is not None:
-            return actions
-
-        url = request.data.get('url')
-        if url is None:
-            raise ParseError()
-
-        page = ActionList.get_page(url)
-
-        previous_id = request.data.get('previous')
-        previous = previous_id and Visit.objects.get_or_none(id=previous_id)
-
-        visit_id = Visit.objects.create(page=page, previous=previous).id
-        return [{**a, 'visit': visit_id} for a in actions]
-
-    @staticmethod
-    def get_page(url):
-        path = Page.parse_path(url)
-        if path is None:
-            raise ParseError()
-
-        print(f"searching page '{path}'...")
-        page = Page.objects.get_or_none(path=path)
-        if page is not None:
-            return page
-
-        site_url = Site.parse_url(url)
-        if site_url is None:
-            raise ParseError()
-
-        print(f"searching site '{site_url}'...")
-        site = Site.objects.get_or_none(url=site_url)
-        if site is None:
-            raise ParseError()
-
-        return Page.objects.create(path=path, site=site)
+            visit=self.kwargs['visit_id'],
+            visit__page__site__owner=self.request.user)

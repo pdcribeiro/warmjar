@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
-from rest_framework import serializers
+from rest_framework.serializers import ModelSerializer, PrimaryKeyRelatedField
+from rest_framework.exceptions import NotFound, ParseError, ValidationError
 
 from .models import Action, Page, Site, Visit
 
@@ -16,24 +17,46 @@ class FieldsFilterMixin:
             self.fields.pop(field)
 
 
-class ActionSerializer(serializers.ModelSerializer):
+# class UserFilteredPrimaryKeyRelatedField(PrimaryKeyRelatedField):
+#     def get_queryset(self):
+#         request = self.context.get('request', None)
+#         queryset = super().get_queryset()
+#         if not request or not queryset:
+#             return None
+#         return queryset.filter(user=request.user)
+
+
+class ActionSerializer(ModelSerializer):
     class Meta:
         model = Action
-        fields = ['id', 'type', 'x', 'y', 'performed', 'visit']
+        fields = ['id', 'type', 'x', 'y', 'performed']
         read_only_fields = ['id']
 
 
-class VisitSerializer(FieldsFilterMixin, serializers.ModelSerializer):
-    previous = serializers.PrimaryKeyRelatedField(read_only=True)
-    next = serializers.PrimaryKeyRelatedField(read_only=True)
+class VisitSerializer(FieldsFilterMixin, ModelSerializer):
+    page = PrimaryKeyRelatedField(queryset=Page.objects.all(), required=False)
+    previous = PrimaryKeyRelatedField(
+        queryset=Visit.objects.all(), allow_null=True)  # TODO filter by same user as current visit
+    next = PrimaryKeyRelatedField(read_only=True)
+    actions = ActionSerializer(many=True)
 
     class Meta:
         model = Visit
-        fields = ['url', 'id', 'started', 'page', 'previous', 'next']
-        read_only_fields = ['url', 'id', 'next']
+        fields = ['id', 'started', 'page', 'previous', 'next', 'actions']
+        read_only_fields = ['id', 'next']
+
+    def create(self, validated_data):
+        visit_data = {k: validated_data[k] for k in ['page', 'previous']}
+        instance = Visit.objects.create(**visit_data)
+        return self.update(instance, validated_data)
+
+    def update(self, instance, validated_data):
+        actions = [Action(**data) for data in validated_data['actions']]
+        instance.actions.add(*actions, bulk=False)
+        return instance
 
 
-class PageSerializer(FieldsFilterMixin, serializers.ModelSerializer):
+class PageSerializer(FieldsFilterMixin, ModelSerializer):
     visits = VisitSerializer(many=True, fields=['id', 'started'])
 
     class Meta:
@@ -42,8 +65,7 @@ class PageSerializer(FieldsFilterMixin, serializers.ModelSerializer):
         read_only_fields = ['id', 'visits']
 
 
-class SiteSerializer(FieldsFilterMixin, serializers.ModelSerializer):
-    # owner = serializers.ReadOnlyField(source='owner.username')
+class SiteSerializer(FieldsFilterMixin, ModelSerializer):
     pages = PageSerializer(many=True, fields=['id', 'path'])
     visits = VisitSerializer(many=True, source='get_visits',
                              fields=['id', 'started'])
@@ -54,7 +76,7 @@ class SiteSerializer(FieldsFilterMixin, serializers.ModelSerializer):
         read_only_fields = ['id', 'pages', 'visits']
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserSerializer(ModelSerializer):
     sites = SiteSerializer(many=True, fields=['id', 'url'])
 
     class Meta:

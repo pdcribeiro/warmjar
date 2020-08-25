@@ -132,12 +132,8 @@ LOGIN_REDIRECT_URL = '/'
 
 
 CORS_ORIGIN_ALLOW_ALL = True
-
-CORS_URLS_REGEX = r'^/api/actions/$'
-
-CORS_ALLOW_METHODS = [
-    'POST',
-]
+# CORS_URLS_REGEX = r'^/api/(visits/\d+/)?actions/$'
+CORS_ALLOW_METHODS = ['POST', 'PATCH']
 
 
 REST_FRAMEWORK = {
@@ -147,3 +143,25 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
 }
+
+
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'handlers': {
+#         'console': {
+#             'class': 'logging.StreamHandler',
+#         },
+#     },
+#     'root': {
+#         'handlers': ['console'],
+#         'level': 'WARNING',
+#     },
+#     'loggers': {
+#         'django.db.backends': {
+#             'handlers': ['console'],
+#             'level': 'DEBUG',
+#             'propagate': False,
+#         },
+#     },
+# }

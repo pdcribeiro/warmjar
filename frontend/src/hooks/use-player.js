@@ -30,7 +30,7 @@ function useProvidePlayer() {
   useEffect(() => {
     if (visit) {
       axios
-        .get('/api/actions/?visit=' + visit)
+        .get(`/api/visits/${visit}/actions/`)
         .then(response => {
           actions = response.data.results;
           // console.log(actions.slice(0, 10));

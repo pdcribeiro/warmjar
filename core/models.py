@@ -3,6 +3,7 @@ import re
 from datetime import datetime
 from django.conf import settings
 from django.db import models
+from rest_framework.exceptions import NotFound
 
 
 def get_or_none(self, **kwargs):
@@ -12,7 +13,15 @@ def get_or_none(self, **kwargs):
         return None
 
 
+def get_or_404(self, **kwargs):
+    try:
+        return self.model.objects.get(**kwargs)
+    except self.model.DoesNotExist:
+        raise NotFound(f'{self.__class__.__name__} not found.')
+
+
 models.Manager.get_or_none = get_or_none
+models.Manager.get_or_404 = get_or_404
 
 
 class Site(models.Model):
@@ -36,12 +45,16 @@ class Site(models.Model):
 
 
 class Page(models.Model):
-    path = models.CharField(max_length=200, unique=True)
+    path = models.CharField(max_length=200)
     site = models.ForeignKey(
         Site, on_delete=models.CASCADE, related_name='pages')
 
     class Meta:
         ordering = ['site', 'path']
+        # constraints = [
+        #     models.UniqueConstraint(
+        #         fields=['site__url', 'path'], name='unique_page')
+        # ]
 
     def __str__(self):
         return self.path
@@ -81,7 +94,7 @@ class Action(models.Model):
         Visit, on_delete=models.CASCADE, related_name='actions')
 
     class Meta:
-        ordering = ['visit', '-performed']
+        ordering = ['visit', 'performed']
 
     def __str__(self):
         return f'{self.get_type_display()} on {self.performed}'

@@ -1,10 +1,31 @@
 # warmjar
 
+## Possible actions
+
+Retrive/create/update/delete site
+* GET/POST sites/
+* GET/PATCH/DELETE sites/site-id/
+  - provides related pages and visits (GET)
+
+Retrieve/update/delete page related to site
+* GET pages/
+  - server creates pages automatically
+* GET/PATCH/DELETE pages/page-id/
+  - provides related visits (GET)
+
+Create visit with actions
+* POST visits/
+
+Add actions to or delete visit related to page
+* PATCH/DELETE visits/visit-id/
+
+Retrieve list of actions related to visit
+* GET/POST visits/visit-id/actions/
+
+
 ## TODO
 
 WIP
-* action view permissions
-* redo action view
 * tests
 
 Record
@@ -12,6 +33,7 @@ Record
   - send size on first api call
   - detect and send resize events
 * keep same visit after refresh
+  * local/session storage?
 
 Play
 * update list after delete
@@ -77,10 +99,13 @@ Play
 * improve player width responsiveness
 * use player content limiting dimension to handle portrait frames
 * confirm delete
+* allow admin to access all data
 
 General
 * REST subscription? Long pooling? etc.
 * use GraphQL instead of REST
+* handle zoom (record and play)
+* Is auth check needed if filtering with queryset?
 
 
 ## Bugs

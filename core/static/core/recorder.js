@@ -1,12 +1,12 @@
 var MAX_ACTIONS_LENGTH = 50;
 
 var visitID = null;
-var prevVisitID = null;
+var prevVisitID;
 var actions = [];
 var loaded = new Date();
 
 function init() {
-  prevVisitID = sessionStorage.getItem('warmjar.visitID');
+  prevVisitID = sessionStorage.getItem('warmjar.visitID') || null;
   startRecording();
 }
 init();
@@ -58,7 +58,6 @@ function createAction(type, values) {
     type,
     ...values,
     performed: new Date() - loaded,
-    visit: visitID,
   });
 
   if (actions.length == MAX_ACTIONS_LENGTH) {
@@ -67,24 +66,35 @@ function createAction(type, values) {
 }
 
 function sendActions(actions) {
-  var data = {
-    actions,
-    ...(!visitID && { url: window.location.href, previous: prevVisitID }),
-  };
-  console.log('sending actions...', {...data, actions: [], actionsSample: actions.slice(0, 5) });
-  postJSON('http://localhost:8000/api/actions/', data)
+  if (visitID) {
+    var method = 'PATCH';
+    // var url = `http://localhost:8000/api/visits/${visitID}/actions/`;
+    var url = `http://localhost:8000/api/visits/${visitID}/`;
+    var data = { actions };
+  } else {
+    var method = 'POST';
+    // var url = `http://localhost:8000/api/actions/`;
+    var url = `http://localhost:8000/api/visits/`;
+    var data = { actions, url: window.location.href, previous: prevVisitID };
+  }
+  console.log(
+    'sending actions...',
+    { ...data, actions: [] },
+    actions.slice(0, 5)
+  );
+  sendJSON(method, url, data)
     .then(handleNewVisitID)
     .catch(error => console.error('Failed to send actions.', error));
 }
 
-function postJSON(url, data) {
+function sendJSON(method, url, data) {
   var req = new XMLHttpRequest();
-  req.open('POST', url);
+  req.open(method, url);
   req.setRequestHeader('Content-Type', 'application/json');
 
   var promise = new Promise(function (resolve, reject) {
     req.onload = function () {
-      resolve(JSON.parse(req.responseText));
+      resolve(req.responseText);
     };
     req.onerror = function () {
       reject('Request failed.');
@@ -101,11 +111,11 @@ function postJSON(url, data) {
 
 function handleNewVisitID(response) {
   console.log('Sent actions. Server replied with:', response);
-  if (!visitID) {
-    visitID = response.visit;
-    for (var i = 0, len = actions.length; i < len; i++) {
-      actions[i].visit = visitID;
-    }
+  if (visitID) return;
+
+  var { visit } = JSON.parse(response);
+  if (visit) {
+    visitID = visit;
     prevVisitID = null;
     sessionStorage.setItem('warmjar.visitID', visitID);
   }
