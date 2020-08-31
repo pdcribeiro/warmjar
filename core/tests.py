@@ -10,6 +10,8 @@ from core.models import Action, Page, Site, Visit
 from core.serializers import ActionSerializer
 
 
+HTTP_NOT_ALLOWED = status.HTTP_405_METHOD_NOT_ALLOWED
+
 User = get_user_model()
 
 
@@ -201,18 +203,15 @@ class SiteTests(APITestCase):
 
     def test_put_list_not_allowed(self):
         response = self.client.put(self.LIST_API_URL, self.NEW_DATA)
-        expected_code = status.HTTP_405_METHOD_NOT_ALLOWED
-        self.assertEqual(response.status_code, expected_code)
+        self.assertEqual(response.status_code, HTTP_NOT_ALLOWED)
 
     def test_patch_list_not_allowed(self):
         response = self.client.patch(self.LIST_API_URL, self.NEW_DATA)
-        expected_code = status.HTTP_405_METHOD_NOT_ALLOWED
-        self.assertEqual(response.status_code, expected_code)
+        self.assertEqual(response.status_code, HTTP_NOT_ALLOWED)
 
     def test_delete_list_not_allowed(self):
         response = self.client.delete(self.LIST_API_URL, self.NEW_DATA)
-        expected_code = status.HTTP_405_METHOD_NOT_ALLOWED
-        self.assertEqual(response.status_code, expected_code)
+        self.assertEqual(response.status_code, HTTP_NOT_ALLOWED)
 
     def test_get(self):
         response = self.client.get(self.DETAIL_API_URL)
@@ -221,8 +220,7 @@ class SiteTests(APITestCase):
 
     def test_post(self):
         response = self.client.post(self.DETAIL_API_URL)
-        expected_code = status.HTTP_405_METHOD_NOT_ALLOWED
-        self.assertEqual(response.status_code, expected_code)
+        self.assertEqual(response.status_code, HTTP_NOT_ALLOWED)
 
     def test_put(self):
         response = self.client.put(self.DETAIL_API_URL, self.NEW_DATA)
@@ -262,35 +260,14 @@ class PageTests(APITestCase):
         self.DETAIL_API_URL = reverse('page-detail', args=[self.page1.id])
         login(self.client, self.user1)
 
-    def test_get_list_not_found(self):
-        response = self.client.get(self.LIST_API_URL)
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-    def test_post_list_not_found(self):
-        response = self.client.post(self.LIST_API_URL)
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-    def test_put_list_not_found(self):
-        response = self.client.put(self.LIST_API_URL)
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-    def test_patch_list_not_found(self):
-        response = self.client.patch(self.LIST_API_URL)
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-    def test_delete_list_not_found(self):
-        response = self.client.delete(self.LIST_API_URL)
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
     def test_get(self):
         response = self.client.get(self.DETAIL_API_URL)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['path'], self.page1.path)
 
-    def test_post(self):
+    def test_post_not_allowed(self):
         response = self.client.post(self.DETAIL_API_URL)
-        expected_code = status.HTTP_405_METHOD_NOT_ALLOWED
-        self.assertEqual(response.status_code, expected_code)
+        self.assertEqual(response.status_code, HTTP_NOT_ALLOWED)
 
     def test_put(self):
         response = self.client.put(self.DETAIL_API_URL, self.NEW_DATA)
@@ -337,8 +314,7 @@ class VisitTests(APITestCase):
 
     def test_get_list_not_allowed(self):
         response = self.client.get(self.LIST_API_URL)
-        expected_code = status.HTTP_405_METHOD_NOT_ALLOWED
-        self.assertEqual(response.status_code, expected_code)
+        self.assertEqual(response.status_code, HTTP_NOT_ALLOWED)
 
     def test_post_list_existing_page_no_previous(self):
         self.client.logout()
@@ -405,33 +381,27 @@ class VisitTests(APITestCase):
 
     def test_put_list_not_allowed(self):
         response = self.client.put(self.LIST_API_URL)
-        expected_code = status.HTTP_405_METHOD_NOT_ALLOWED
-        self.assertEqual(response.status_code, expected_code)
+        self.assertEqual(response.status_code, HTTP_NOT_ALLOWED)
 
     def test_patch_list_not_allowed(self):
         response = self.client.patch(self.LIST_API_URL)
-        expected_code = status.HTTP_405_METHOD_NOT_ALLOWED
-        self.assertEqual(response.status_code, expected_code)
+        self.assertEqual(response.status_code, HTTP_NOT_ALLOWED)
 
     def test_delete_list_not_allowed(self):
         response = self.client.delete(self.LIST_API_URL)
-        expected_code = status.HTTP_405_METHOD_NOT_ALLOWED
-        self.assertEqual(response.status_code, expected_code)
+        self.assertEqual(response.status_code, HTTP_NOT_ALLOWED)
 
     def test_get_not_allowed(self):
         response = self.client.get(self.DETAIL_API_URL)
-        expected_code = status.HTTP_405_METHOD_NOT_ALLOWED
-        self.assertEqual(response.status_code, expected_code)
+        self.assertEqual(response.status_code, HTTP_NOT_ALLOWED)
 
     def test_post_not_allowed(self):
         response = self.client.post(self.DETAIL_API_URL)
-        expected_code = status.HTTP_405_METHOD_NOT_ALLOWED
-        self.assertEqual(response.status_code, expected_code)
+        self.assertEqual(response.status_code, HTTP_NOT_ALLOWED)
 
     def test_put_not_allowed(self):
         response = self.client.put(self.DETAIL_API_URL)
-        expected_code = status.HTTP_405_METHOD_NOT_ALLOWED
-        self.assertEqual(response.status_code, expected_code)
+        self.assertEqual(response.status_code, HTTP_NOT_ALLOWED)
 
     def test_patch(self):
         self.client.logout()
@@ -451,3 +421,41 @@ class VisitTests(APITestCase):
         # Confirm visit has been deleted.
         with self.assertRaisesMessage(Visit.DoesNotExist, ''):
             Visit.objects.get(id=self.visit1.id)
+
+
+class ActionTests(APITestCase):
+    LIST_API_URL = ''
+
+    @classmethod
+    def setUpTestData(cls):
+        create_test_data(cls)
+
+    def setUp(self):
+        self.LIST_API_URL = reverse('action-list', args=[self.visit1.id])
+        login(self.client, self.user1)
+
+    def test_get_list(self):
+        response = self.client.get(self.LIST_API_URL)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        actions = [dict(a) for a in response.data['results']]
+        
+        # Test actions content.
+        for action in self.visit1.actions.all():
+            serializer = ActionSerializer(action)
+            self.assertIn(serializer.data, actions)
+            
+    def test_post_list_not_allowed(self):
+        response = self.client.post(self.LIST_API_URL)
+        self.assertEqual(response.status_code, HTTP_NOT_ALLOWED)
+
+    def test_put_list_not_allowed(self):
+        response = self.client.put(self.LIST_API_URL)
+        self.assertEqual(response.status_code, HTTP_NOT_ALLOWED)
+
+    def test_patch_list_not_allowed(self):
+        response = self.client.patch(self.LIST_API_URL)
+        self.assertEqual(response.status_code, HTTP_NOT_ALLOWED)
+
+    def test_delete_list_not_allowed(self):
+        response = self.client.delete(self.LIST_API_URL)
+        self.assertEqual(response.status_code, HTTP_NOT_ALLOWED)
