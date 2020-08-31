@@ -10,36 +10,36 @@ from core.models import Action, Page, Site, Visit
 from core.serializers import ActionSerializer
 
 
-HTTP_NOT_ALLOWED = status.HTTP_405_METHOD_NOT_ALLOWED
+HTTP_405 = status.HTTP_405_METHOD_NOT_ALLOWED
 
 User = get_user_model()
 
 
-def create_test_data(cls):
-    cls.user1 = User.objects.create_user(
+def create_test_data(obj):
+    obj.user1 = User.objects.create_user(
         username='user1', password='password')
-    cls.user2 = User.objects.create_user(
+    obj.user2 = User.objects.create_user(
         username='user2', password='password')
 
-    cls.site1 = Site.objects.create(url='site1.com', owner=cls.user1)
-    cls.site2 = Site.objects.create(url='site2.com', owner=cls.user1)
-    cls.site3 = Site.objects.create(url='site3.com', owner=cls.user2)
+    obj.site1 = Site.objects.create(url='site1.com', owner=obj.user1)
+    obj.site2 = Site.objects.create(url='site2.com', owner=obj.user1)
+    obj.site3 = Site.objects.create(url='site3.com', owner=obj.user2)
 
-    cls.page1 = Page.objects.create(path='page1', site=cls.site1)
-    cls.page2 = Page.objects.create(path='page1/subpage1', site=cls.site1)
-    cls.page3 = Page.objects.create(path='page1', site=cls.site2)
+    obj.page1 = Page.objects.create(path='page1', site=obj.site1)
+    obj.page2 = Page.objects.create(path='page1/subpage1', site=obj.site1)
+    obj.page3 = Page.objects.create(path='page1', site=obj.site2)
 
-    cls.visit1 = Visit.objects.create(page=cls.page1)
-    cls.visit2 = Visit.objects.create(page=cls.page3)
+    obj.visit1 = Visit.objects.create(page=obj.page1)
+    obj.visit2 = Visit.objects.create(page=obj.page3)
 
-    cls.action1 = Action.objects.create(
-        type='mm', x=10, y=10, performed=100, visit=cls.visit1)
-    cls.action2 = Action.objects.create(
-        type='mm', x=20, y=10, performed=200, visit=cls.visit1)
-    cls.action3 = Action.objects.create(
-        type='mm', x=20, y=20, performed=300, visit=cls.visit1)
-    cls.action4 = Action.objects.create(
-        type='mm', x=10, y=10, performed=100, visit=cls.visit2)
+    obj.action1 = Action.objects.create(
+        type='mm', x=10, y=10, performed=100, visit=obj.visit1)
+    obj.action2 = Action.objects.create(
+        type='mm', x=20, y=10, performed=200, visit=obj.visit1)
+    obj.action3 = Action.objects.create(
+        type='mm', x=20, y=20, performed=300, visit=obj.visit1)
+    obj.action4 = Action.objects.create(
+        type='mm', x=10, y=10, performed=100, visit=obj.visit2)
 
 
 def login(client, user):
@@ -127,50 +127,9 @@ class CoreTests(APITestCase):
         pass
 
 
-class AnonymousTests(APITestCase):
-    @classmethod
-    def setUpTestData(cls):
-        create_test_data(cls)
-
-    def test_get_site_list(self):
-        api_url = reverse('site-list')
-        response = self.client.get(api_url)
-        self.assertEqual(response.status_code, 403)
-
-    def test_post_site_list(self):
-        api_url = reverse('site-list')
-        response = self.client.post(api_url, SiteTests.NEW_DATA)
-        self.assertEqual(response.status_code, 403)
-
-    def test_get_site(self):
-        api_url = reverse('site-detail', args=[self.site1.id])
-        response = self.client.get(api_url)
-        self.assertEqual(response.status_code, 403)
-
-    def test_post_site(self):
-        api_url = reverse('site-detail', args=[self.site1.id])
-        response = self.client.post(api_url)
-        self.assertEqual(response.status_code, 403)
-
-    def test_put_site(self):
-        api_url = reverse('site-detail', args=[self.site1.id])
-        response = self.client.put(api_url, SiteTests.NEW_DATA)
-        self.assertEqual(response.status_code, 403)
-
-    def test_patch_site(self):
-        api_url = reverse('site-detail', args=[self.site1.id])
-        response = self.client.patch(api_url, SiteTests.NEW_DATA)
-        self.assertEqual(response.status_code, 403)
-
-    def test_delete_site(self):
-        api_url = reverse('site-detail', args=[self.site1.id])
-        response = self.client.delete(api_url)
-        self.assertEqual(response.status_code, 403)
-
-
 class SiteTests(APITestCase):
     LIST_API_URL = reverse('site-list')
-    DETAIL_API_URL = ''
+    DETAIL_API_URL = reverse('site-detail', args=[1])
     NEW_DATA = {'url': 'newsite.com'}
 
     @classmethod
@@ -178,7 +137,6 @@ class SiteTests(APITestCase):
         create_test_data(cls)
 
     def setUp(self):
-        self.DETAIL_API_URL = reverse('site-detail', args=[self.site1.id])
         login(self.client, self.user1)
 
     def test_get_list(self):
@@ -203,15 +161,15 @@ class SiteTests(APITestCase):
 
     def test_put_list_not_allowed(self):
         response = self.client.put(self.LIST_API_URL, self.NEW_DATA)
-        self.assertEqual(response.status_code, HTTP_NOT_ALLOWED)
+        self.assertEqual(response.status_code, HTTP_405)
 
     def test_patch_list_not_allowed(self):
         response = self.client.patch(self.LIST_API_URL, self.NEW_DATA)
-        self.assertEqual(response.status_code, HTTP_NOT_ALLOWED)
+        self.assertEqual(response.status_code, HTTP_405)
 
     def test_delete_list_not_allowed(self):
         response = self.client.delete(self.LIST_API_URL, self.NEW_DATA)
-        self.assertEqual(response.status_code, HTTP_NOT_ALLOWED)
+        self.assertEqual(response.status_code, HTTP_405)
 
     def test_get(self):
         response = self.client.get(self.DETAIL_API_URL)
@@ -220,7 +178,7 @@ class SiteTests(APITestCase):
 
     def test_post(self):
         response = self.client.post(self.DETAIL_API_URL)
-        self.assertEqual(response.status_code, HTTP_NOT_ALLOWED)
+        self.assertEqual(response.status_code, HTTP_405)
 
     def test_put(self):
         response = self.client.put(self.DETAIL_API_URL, self.NEW_DATA)
@@ -248,8 +206,7 @@ class SiteTests(APITestCase):
 
 
 class PageTests(APITestCase):
-    LIST_API_URL = '/api/pages/'
-    DETAIL_API_URL = ''
+    DETAIL_API_URL = reverse('page-detail', args=[1])
     NEW_DATA = {'path': 'newpage'}
 
     @classmethod
@@ -257,7 +214,6 @@ class PageTests(APITestCase):
         create_test_data(cls)
 
     def setUp(self):
-        self.DETAIL_API_URL = reverse('page-detail', args=[self.page1.id])
         login(self.client, self.user1)
 
     def test_get(self):
@@ -267,7 +223,7 @@ class PageTests(APITestCase):
 
     def test_post_not_allowed(self):
         response = self.client.post(self.DETAIL_API_URL)
-        self.assertEqual(response.status_code, HTTP_NOT_ALLOWED)
+        self.assertEqual(response.status_code, HTTP_405)
 
     def test_put(self):
         response = self.client.put(self.DETAIL_API_URL, self.NEW_DATA)
@@ -296,7 +252,7 @@ class PageTests(APITestCase):
 
 class VisitTests(APITestCase):
     LIST_API_URL = reverse('visit-list')
-    DETAIL_API_URL = ''
+    DETAIL_API_URL = reverse('visit-detail', args=[1])
     NEW_DATA = {'page': 1}
     ACTIONS = [
         {'type': 'mm', 'x': 10, 'y': 10, 'performed': 100},
@@ -309,16 +265,13 @@ class VisitTests(APITestCase):
         create_test_data(cls)
 
     def setUp(self):
-        self.DETAIL_API_URL = reverse('visit-detail', args=[self.visit1.id])
         login(self.client, self.user1)
 
     def test_get_list_not_allowed(self):
         response = self.client.get(self.LIST_API_URL)
-        self.assertEqual(response.status_code, HTTP_NOT_ALLOWED)
+        self.assertEqual(response.status_code, HTTP_405)
 
     def test_post_list_existing_page_no_previous(self):
-        self.client.logout()
-
         URL = f'https://{self.site1.url}/{self.page1.path}'
         DATA = {'url': URL, 'previous': None, 'actions': self.ACTIONS}
         response = self.client.post(self.LIST_API_URL, DATA)
@@ -335,8 +288,6 @@ class VisitTests(APITestCase):
             self.assertEqual(serializer.data, self.ACTIONS[i])
 
     def test_post_list_existing_page_with_previous(self):
-        self.client.logout()
-
         URL = f'https://{self.site1.url}/{self.page2.path}'
         DATA = {'url': URL, 'previous': self.visit1.id, 'actions': self.ACTIONS}
         response = self.client.post(self.LIST_API_URL, DATA)
@@ -346,8 +297,6 @@ class VisitTests(APITestCase):
         self.assertEqual(new_visit.previous, self.visit1)
 
     def test_post_list_new_page(self):
-        self.client.logout()
-
         site_count_before = Site.objects.count()
         page_count_before = Page.objects.count()
         visit_count_before = Visit.objects.count()
@@ -363,8 +312,6 @@ class VisitTests(APITestCase):
         self.assertEqual(Visit.objects.count(), visit_count_before + 1)
 
     def test_post_list_new_site_not_found(self):
-        self.client.logout()
-
         site_count_before = Site.objects.count()
         page_count_before = Page.objects.count()
         visit_count_before = Visit.objects.count()
@@ -381,31 +328,29 @@ class VisitTests(APITestCase):
 
     def test_put_list_not_allowed(self):
         response = self.client.put(self.LIST_API_URL)
-        self.assertEqual(response.status_code, HTTP_NOT_ALLOWED)
+        self.assertEqual(response.status_code, HTTP_405)
 
     def test_patch_list_not_allowed(self):
         response = self.client.patch(self.LIST_API_URL)
-        self.assertEqual(response.status_code, HTTP_NOT_ALLOWED)
+        self.assertEqual(response.status_code, HTTP_405)
 
     def test_delete_list_not_allowed(self):
         response = self.client.delete(self.LIST_API_URL)
-        self.assertEqual(response.status_code, HTTP_NOT_ALLOWED)
+        self.assertEqual(response.status_code, HTTP_405)
 
     def test_get_not_allowed(self):
         response = self.client.get(self.DETAIL_API_URL)
-        self.assertEqual(response.status_code, HTTP_NOT_ALLOWED)
+        self.assertEqual(response.status_code, HTTP_405)
 
     def test_post_not_allowed(self):
         response = self.client.post(self.DETAIL_API_URL)
-        self.assertEqual(response.status_code, HTTP_NOT_ALLOWED)
+        self.assertEqual(response.status_code, HTTP_405)
 
     def test_put_not_allowed(self):
         response = self.client.put(self.DETAIL_API_URL)
-        self.assertEqual(response.status_code, HTTP_NOT_ALLOWED)
+        self.assertEqual(response.status_code, HTTP_405)
 
     def test_patch(self):
-        self.client.logout()
-
         action_count_before = self.visit1.actions.count()
 
         DATA = {'actions': self.ACTIONS}
@@ -424,38 +369,170 @@ class VisitTests(APITestCase):
 
 
 class ActionTests(APITestCase):
-    LIST_API_URL = ''
+    LIST_API_URL = reverse('action-list', args=[1])
 
     @classmethod
     def setUpTestData(cls):
         create_test_data(cls)
 
     def setUp(self):
-        self.LIST_API_URL = reverse('action-list', args=[self.visit1.id])
         login(self.client, self.user1)
 
     def test_get_list(self):
         response = self.client.get(self.LIST_API_URL)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         actions = [dict(a) for a in response.data['results']]
-        
+
         # Test actions content.
         for action in self.visit1.actions.all():
             serializer = ActionSerializer(action)
             self.assertIn(serializer.data, actions)
-            
+
     def test_post_list_not_allowed(self):
         response = self.client.post(self.LIST_API_URL)
-        self.assertEqual(response.status_code, HTTP_NOT_ALLOWED)
+        self.assertEqual(response.status_code, HTTP_405)
 
     def test_put_list_not_allowed(self):
         response = self.client.put(self.LIST_API_URL)
-        self.assertEqual(response.status_code, HTTP_NOT_ALLOWED)
+        self.assertEqual(response.status_code, HTTP_405)
 
     def test_patch_list_not_allowed(self):
         response = self.client.patch(self.LIST_API_URL)
-        self.assertEqual(response.status_code, HTTP_NOT_ALLOWED)
+        self.assertEqual(response.status_code, HTTP_405)
 
     def test_delete_list_not_allowed(self):
         response = self.client.delete(self.LIST_API_URL)
-        self.assertEqual(response.status_code, HTTP_NOT_ALLOWED)
+        self.assertEqual(response.status_code, HTTP_405)
+
+
+class AnonymousTests(APITestCase):
+    # Site
+    def test_get_site_list(self):
+        response = self.client.get(SiteTests.LIST_API_URL)
+        self.assertEqual(response.status_code, 403)
+
+    def test_post_site_list(self):
+        response = self.client.post(SiteTests.LIST_API_URL)
+        self.assertEqual(response.status_code, 403)
+
+    def test_put_site_list(self):
+        response = self.client.put(SiteTests.LIST_API_URL)
+        self.assertEqual(response.status_code, 403)
+
+    def test_patch_site_list(self):
+        response = self.client.patch(SiteTests.LIST_API_URL)
+        self.assertEqual(response.status_code, 403)
+
+    def test_delete_site_list(self):
+        response = self.client.delete(SiteTests.LIST_API_URL)
+        self.assertEqual(response.status_code, 403)
+
+    def test_get_site(self):
+        response = self.client.get(SiteTests.DETAIL_API_URL)
+        self.assertEqual(response.status_code, 403)
+
+    def test_post_site(self):
+        response = self.client.post(SiteTests.DETAIL_API_URL)
+        self.assertEqual(response.status_code, 403)
+
+    def test_put_site(self):
+        response = self.client.put(SiteTests.DETAIL_API_URL)
+        self.assertEqual(response.status_code, 403)
+
+    def test_patch_site(self):
+        response = self.client.patch(SiteTests.DETAIL_API_URL)
+        self.assertEqual(response.status_code, 403)
+
+    def test_delete_site(self):
+        response = self.client.delete(SiteTests.DETAIL_API_URL)
+        self.assertEqual(response.status_code, 403)
+
+    # Page
+    def test_get_page(self):
+        response = self.client.get(PageTests.DETAIL_API_URL)
+        self.assertEqual(response.status_code, 403)
+
+    def test_post_page(self):
+        response = self.client.post(PageTests.DETAIL_API_URL)
+        self.assertEqual(response.status_code, 403)
+
+    def test_put_page(self):
+        response = self.client.put(PageTests.DETAIL_API_URL)
+        self.assertEqual(response.status_code, 403)
+
+    def test_patch_page(self):
+        response = self.client.patch(PageTests.DETAIL_API_URL)
+        self.assertEqual(response.status_code, 403)
+
+    def test_delete_page(self):
+        response = self.client.delete(PageTests.DETAIL_API_URL)
+        self.assertEqual(response.status_code, 403)
+
+    # Visit
+    def test_get_visit_list(self):
+        response = self.client.get(VisitTests.LIST_API_URL)
+        self.assertEqual(response.status_code, 403)
+
+    def test_post_visit_list(self):
+        self.LIST_API_URL = VisitTests.LIST_API_URL
+        self.ACTIONS = VisitTests.ACTIONS
+        create_test_data(self)
+        VisitTests.test_post_list_existing_page_no_previous(self)
+        VisitTests.test_post_list_existing_page_with_previous(self)
+        VisitTests.test_post_list_new_page(self)
+        VisitTests.test_post_list_new_site_not_found(self)
+
+    def test_put_visit_list(self):
+        response = self.client.put(VisitTests.LIST_API_URL)
+        self.assertEqual(response.status_code, 403)
+
+    def test_patch_visit_list(self):
+        response = self.client.patch(VisitTests.LIST_API_URL)
+        self.assertEqual(response.status_code, 403)
+
+    def test_delete_visit_list(self):
+        response = self.client.delete(VisitTests.LIST_API_URL)
+        self.assertEqual(response.status_code, 403)
+
+    def test_get_visit(self):
+        response = self.client.get(VisitTests.DETAIL_API_URL)
+        self.assertEqual(response.status_code, 403)
+
+    def test_post_visit(self):
+        response = self.client.post(VisitTests.DETAIL_API_URL)
+        self.assertEqual(response.status_code, 403)
+
+    def test_put_visit(self):
+        response = self.client.put(VisitTests.DETAIL_API_URL)
+        self.assertEqual(response.status_code, 403)
+
+    def test_patch_visit(self):
+        self.DETAIL_API_URL = VisitTests.DETAIL_API_URL
+        self.ACTIONS = VisitTests.ACTIONS
+        create_test_data(self)
+        VisitTests.test_patch(self)
+
+    def test_delete_visit(self):
+        response = self.client.delete(VisitTests.DETAIL_API_URL)
+        self.assertEqual(response.status_code, 403)
+
+    # Action
+    def test_get_action_list(self):
+        response = self.client.get(ActionTests.LIST_API_URL)
+        self.assertEqual(response.status_code, 403)
+
+    def test_post_action_list(self):
+        response = self.client.post(ActionTests.LIST_API_URL)
+        self.assertEqual(response.status_code, 403)
+
+    def test_put_action_list(self):
+        response = self.client.put(ActionTests.LIST_API_URL)
+        self.assertEqual(response.status_code, 403)
+
+    def test_patch_action_list(self):
+        response = self.client.patch(ActionTests.LIST_API_URL)
+        self.assertEqual(response.status_code, 403)
+
+    def test_delete_action_list(self):
+        response = self.client.delete(ActionTests.LIST_API_URL)
+        self.assertEqual(response.status_code, 403)
