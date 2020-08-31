@@ -40,7 +40,7 @@ class Site(models.Model):
 
     @staticmethod
     def parse_url(url):
-        match = re.search('(https?://)?(www.)?([^/]+)/?', url)
+        match = re.search('(https?://)?(www.)?([^/]+\.[^/]+)/?', url)
         return match and match.group(3)
 
 
@@ -61,7 +61,7 @@ class Page(models.Model):
 
     @staticmethod
     def parse_path(url):
-        match = re.search('(https?://)?(www.)?[^/]+/?([^\?]+)\??', url)
+        match = re.search('(https?://)?(www.)?[^/]+\.[^/]+/?([^?]+)\??', url)
         return match and match.group(3).rstrip('/')
 
 

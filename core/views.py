@@ -7,7 +7,6 @@ from rest_framework import generics, mixins  # TMP
 from rest_framework.exceptions import NotFound, ParseError, ValidationError
 from rest_framework.generics import CreateAPIView, DestroyAPIView, ListAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import IsAdminUser
-from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from core.models import Action, Page, Site, Visit
@@ -23,7 +22,7 @@ User = get_user_model()
 def index(request):
     """Provides frontend or CSRF token."""
     if request.path == '/api/':
-        return HttpResponse()
+        return HttpResponse(status=status.HTTP_204_NO_CONTENT)
     return render(request, 'build/index.html')
 
 

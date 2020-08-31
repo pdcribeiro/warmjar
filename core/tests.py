@@ -7,10 +7,15 @@ from rest_framework.exceptions import NotFound, ParseError, ValidationError
 from rest_framework.test import APITestCase
 
 from core.models import Action, Page, Site, Visit
-from core.serializers import ActionSerializer
+from core.serializers import ActionSerializer, FieldsFilterMixin, VisitSerializer
 
 
 HTTP_405 = status.HTTP_405_METHOD_NOT_ALLOWED
+TEST_ACTIONS = [
+    {'type': 'mm', 'x': 10, 'y': 10, 'performed': 100},
+    {'type': 'mm', 'x': 20, 'y': 10, 'performed': 200},
+    {'type': 'mm', 'x': 20, 'y': 20, 'performed': 300},
+]
 
 User = get_user_model()
 
@@ -116,15 +121,49 @@ class CoreTests(APITestCase):
 
         response = login(self.client, self.user1)
         self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.wsgi_request.user, self.user1)
 
     def test_field_filter_mixin(self):
-        pass
+        init_fields = {'a': 1, 'b': 2, 'c': 3, 'd': 4}
+
+        class Test(FieldsFilterMixin):
+            def __init__(self, *args, **kwargs):
+                self.fields = dict(init_fields)
+                super().__init__(*args, **kwargs)
+
+        t = Test()
+        self.assertEqual(t.fields, init_fields)
+
+        fields = ['a', 'b']
+        t = Test(fields=fields)
+        new_dict = {k: v for k, v in init_fields.items() if k in fields}
+        self.assertEqual(t.fields, new_dict)
+
+        exclude = ['b', 'c']
+        t = Test(exclude=exclude)
+        new_dict = {k: v for k, v in init_fields.items()
+                    if k not in exclude}
+        self.assertEqual(t.fields, new_dict)
+
+        t = Test(fields=fields, exclude=exclude)
+        new_dict = {k: v for k, v in new_dict.items() if k in fields}
+        self.assertEqual(t.fields, new_dict)
 
     def test_visit_serializer_create(self):
         pass
 
     def test_visit_serializer_update(self):
         pass
+
+    def test_index_view(self):
+        response = self.client.get(reverse('index'))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTemplateUsed(response, 'build/index.html')
+
+    def test_csrf_token_view(self):
+        response = self.client.get(reverse('csrf-token'))
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertTemplateNotUsed(response, 'build/index.html')
 
 
 class SiteTests(APITestCase):
@@ -254,11 +293,6 @@ class VisitTests(APITestCase):
     LIST_API_URL = reverse('visit-list')
     DETAIL_API_URL = reverse('visit-detail', args=[1])
     NEW_DATA = {'page': 1}
-    ACTIONS = [
-        {'type': 'mm', 'x': 10, 'y': 10, 'performed': 100},
-        {'type': 'mm', 'x': 20, 'y': 10, 'performed': 200},
-        {'type': 'mm', 'x': 20, 'y': 20, 'performed': 300},
-    ]
 
     @classmethod
     def setUpTestData(cls):
@@ -273,24 +307,26 @@ class VisitTests(APITestCase):
 
     def test_post_list_existing_page_no_previous(self):
         URL = f'https://{self.site1.url}/{self.page1.path}'
-        DATA = {'url': URL, 'previous': None, 'actions': self.ACTIONS}
+        DATA = {'url': URL, 'previous': None, 'actions': TEST_ACTIONS}
         response = self.client.post(self.LIST_API_URL, DATA)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # Confirm visit has been created.
         new_visit = Visit.objects.get(id=response.data['visit'])
         self.assertEqual(new_visit.page, self.page1)
         self.assertEqual(new_visit.previous, None)
-        self.assertEqual(new_visit.actions.count(), len(self.ACTIONS))
+        self.assertEqual(new_visit.actions.count(), len(TEST_ACTIONS))
 
         # Test actions content.
         for i, action in enumerate(new_visit.actions.all()):
             serializer = ActionSerializer(action, exclude=['id'])
-            self.assertEqual(serializer.data, self.ACTIONS[i])
+            self.assertEqual(serializer.data, TEST_ACTIONS[i])
 
     def test_post_list_existing_page_with_previous(self):
         URL = f'https://{self.site1.url}/{self.page2.path}'
-        DATA = {'url': URL, 'previous': self.visit1.id, 'actions': self.ACTIONS}
+        DATA = {'url': URL, 'previous': self.visit1.id, 'actions': TEST_ACTIONS}
         response = self.client.post(self.LIST_API_URL, DATA)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # Confirm visit has been created and previous field assigned.
         new_visit = Visit.objects.get(id=response.data['visit'])
@@ -302,8 +338,9 @@ class VisitTests(APITestCase):
         visit_count_before = Visit.objects.count()
 
         URL = f'https://{self.site1.url}/newpage'
-        DATA = {'url': URL, 'previous': None, 'actions': self.ACTIONS}
+        DATA = {'url': URL, 'previous': None, 'actions': TEST_ACTIONS}
         response = self.client.post(self.LIST_API_URL, DATA)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # Confirm visit and page have been created.
         Visit.objects.get(id=response.data['visit'])
@@ -317,9 +354,38 @@ class VisitTests(APITestCase):
         visit_count_before = Visit.objects.count()
 
         URL = f'https://newsite.com/newpage'
-        DATA = {'url': URL, 'previous': None, 'actions': self.ACTIONS}
+        DATA = {'url': URL, 'previous': None, 'actions': TEST_ACTIONS}
         response = self.client.post(self.LIST_API_URL, DATA)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        # Confirm visit has not been created.
+        self.assertEqual(Site.objects.count(), site_count_before)
+        self.assertEqual(Page.objects.count(), page_count_before)
+        self.assertEqual(Visit.objects.count(), visit_count_before)
+
+    def test_post_list_missing_url_parse_error(self):
+        site_count_before = Site.objects.count()
+        page_count_before = Page.objects.count()
+        visit_count_before = Visit.objects.count()
+
+        DATA = {'previous': None, 'actions': TEST_ACTIONS}
+        response = self.client.post(self.LIST_API_URL, DATA)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # Confirm visit has not been created.
+        self.assertEqual(Site.objects.count(), site_count_before)
+        self.assertEqual(Page.objects.count(), page_count_before)
+        self.assertEqual(Visit.objects.count(), visit_count_before)
+
+    def test_post_list_invalid_url_parse_error(self):
+        site_count_before = Site.objects.count()
+        page_count_before = Page.objects.count()
+        visit_count_before = Visit.objects.count()
+
+        URL = 'invalid url'
+        DATA = {'url': URL, 'previous': None, 'actions': TEST_ACTIONS}
+        response = self.client.post(self.LIST_API_URL, DATA)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         # Confirm visit has not been created.
         self.assertEqual(Site.objects.count(), site_count_before)
@@ -353,10 +419,11 @@ class VisitTests(APITestCase):
     def test_patch(self):
         action_count_before = self.visit1.actions.count()
 
-        DATA = {'actions': self.ACTIONS}
+        DATA = {'actions': TEST_ACTIONS}
         response = self.client.patch(self.DETAIL_API_URL, DATA)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        expected_action_count = action_count_before + len(self.ACTIONS)
+        expected_action_count = action_count_before + len(TEST_ACTIONS)
         self.assertEqual(self.visit1.actions.count(), expected_action_count)
 
     def test_delete(self):
@@ -381,12 +448,10 @@ class ActionTests(APITestCase):
     def test_get_list(self):
         response = self.client.get(self.LIST_API_URL)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        actions = [dict(a) for a in response.data['results']]
 
         # Test actions content.
-        for action in self.visit1.actions.all():
-            serializer = ActionSerializer(action)
-            self.assertIn(serializer.data, actions)
+        serializer = ActionSerializer(self.visit1.actions, many=True)
+        self.assertEqual(response.data['results'], serializer.data)
 
     def test_post_list_not_allowed(self):
         response = self.client.post(self.LIST_API_URL)
@@ -475,7 +540,6 @@ class AnonymousTests(APITestCase):
 
     def test_post_visit_list(self):
         self.LIST_API_URL = VisitTests.LIST_API_URL
-        self.ACTIONS = VisitTests.ACTIONS
         create_test_data(self)
         VisitTests.test_post_list_existing_page_no_previous(self)
         VisitTests.test_post_list_existing_page_with_previous(self)
@@ -508,7 +572,6 @@ class AnonymousTests(APITestCase):
 
     def test_patch_visit(self):
         self.DETAIL_API_URL = VisitTests.DETAIL_API_URL
-        self.ACTIONS = VisitTests.ACTIONS
         create_test_data(self)
         VisitTests.test_patch(self)
 
