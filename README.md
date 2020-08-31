@@ -106,6 +106,7 @@ General
 * use GraphQL instead of REST
 * handle zoom (record and play)
 * Is auth check needed if filtering with queryset?
+* Reply with new and/or current action count on visit post_list and patch
 
 
 ## Bugs

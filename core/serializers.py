@@ -8,11 +8,15 @@ User = get_user_model()
 
 
 class FieldsFilterMixin:
-    def __init__(self, *args, exclude=[], fields=[], **kwargs):
+    def __init__(self, *args, fields=None, exclude=None, **kwargs):
         super().__init__(*args, **kwargs)
-        fields_to_exclude = set(exclude)
+
+        fields_to_exclude = set()
         if fields:
             fields_to_exclude |= set(self.fields) - set(fields)
+        if exclude:
+            fields_to_exclude |= set(exclude)
+
         for field in fields_to_exclude:
             self.fields.pop(field)
 
@@ -26,14 +30,15 @@ class FieldsFilterMixin:
 #         return queryset.filter(user=request.user)
 
 
-class ActionSerializer(ModelSerializer):
+class ActionSerializer(FieldsFilterMixin, ModelSerializer):
     class Meta:
         model = Action
         fields = ['id', 'type', 'x', 'y', 'performed']
 
 
 class VisitSerializer(FieldsFilterMixin, ModelSerializer):
-    page = PrimaryKeyRelatedField(queryset=Page.objects.all(), required=False)# read_only=True instead?
+    page = PrimaryKeyRelatedField(
+        queryset=Page.objects.all(), required=False)  # read_only=True instead?
     previous = PrimaryKeyRelatedField(
         queryset=Visit.objects.all(), allow_null=True)  # TODO filter by same user as current visit
     next = PrimaryKeyRelatedField(read_only=True)

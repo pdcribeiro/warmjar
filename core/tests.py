@@ -7,7 +7,7 @@ from rest_framework.exceptions import NotFound, ParseError, ValidationError
 from rest_framework.test import APITestCase
 
 from core.models import Action, Page, Site, Visit
-from core.serializers import VisitSerializer
+from core.serializers import ActionSerializer
 
 
 User = get_user_model()
@@ -28,8 +28,7 @@ def create_test_data(cls):
     cls.page3 = Page.objects.create(path='page1', site=cls.site2)
 
     cls.visit1 = Visit.objects.create(page=cls.page1)
-    cls.visit2 = Visit.objects.create(page=cls.page2, previous=cls.visit1)
-    cls.visit3 = Visit.objects.create(page=cls.page3)
+    cls.visit2 = Visit.objects.create(page=cls.page3)
 
     cls.action1 = Action.objects.create(
         type='mm', x=10, y=10, performed=100, visit=cls.visit1)
@@ -39,12 +38,6 @@ def create_test_data(cls):
         type='mm', x=20, y=20, performed=300, visit=cls.visit1)
     cls.action4 = Action.objects.create(
         type='mm', x=10, y=10, performed=100, visit=cls.visit2)
-    cls.action5 = Action.objects.create(
-        type='mm', x=20, y=10, performed=100, visit=cls.visit2)
-    cls.action6 = Action.objects.create(
-        type='mm', x=20, y=20, performed=100, visit=cls.visit2)
-    cls.action7 = Action.objects.create(
-        type='mm', x=10, y=10, performed=100, visit=cls.visit3)
 
 
 def login(client, user):
@@ -142,7 +135,7 @@ class AnonymousTests(APITestCase):
         response = self.client.get(api_url)
         self.assertEqual(response.status_code, 403)
 
-    def test_create_site(self):
+    def test_post_site_list(self):
         api_url = reverse('site-list')
         response = self.client.post(api_url, SiteTests.NEW_DATA)
         self.assertEqual(response.status_code, 403)
@@ -152,12 +145,17 @@ class AnonymousTests(APITestCase):
         response = self.client.get(api_url)
         self.assertEqual(response.status_code, 403)
 
-    def test_update_site(self):
+    def test_post_site(self):
+        api_url = reverse('site-detail', args=[self.site1.id])
+        response = self.client.post(api_url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_put_site(self):
         api_url = reverse('site-detail', args=[self.site1.id])
         response = self.client.put(api_url, SiteTests.NEW_DATA)
         self.assertEqual(response.status_code, 403)
 
-    def test_partial_update_site(self):
+    def test_patch_site(self):
         api_url = reverse('site-detail', args=[self.site1.id])
         response = self.client.patch(api_url, SiteTests.NEW_DATA)
         self.assertEqual(response.status_code, 403)
@@ -170,7 +168,7 @@ class AnonymousTests(APITestCase):
 
 class SiteTests(APITestCase):
     LIST_API_URL = reverse('site-list')
-    DETAIL_API_URL = None
+    DETAIL_API_URL = ''
     NEW_DATA = {'url': 'newsite.com'}
 
     @classmethod
@@ -193,7 +191,7 @@ class SiteTests(APITestCase):
         response = self.client.get(self.LIST_API_URL)
         self.assertEqual(response.data['count'], 3)
 
-    def test_create(self):
+    def test_post_list(self):
         response = self.client.post(self.LIST_API_URL, self.NEW_DATA)
         self.assertEqual(response.status_code, 201)
 
@@ -201,12 +199,12 @@ class SiteTests(APITestCase):
         new_site_url = Site.objects.get(id=response.data['id']).url
         self.assertEqual(new_site_url, self.NEW_DATA['url'])
 
-    def test_update_list_not_allowed(self):
+    def test_put_list_not_allowed(self):
         response = self.client.put(self.LIST_API_URL, self.NEW_DATA)
         expected_code = status.HTTP_405_METHOD_NOT_ALLOWED
         self.assertEqual(response.status_code, expected_code)
 
-    def test_partial_update_list_not_allowed(self):
+    def test_patch_list_not_allowed(self):
         response = self.client.patch(self.LIST_API_URL, self.NEW_DATA)
         expected_code = status.HTTP_405_METHOD_NOT_ALLOWED
         self.assertEqual(response.status_code, expected_code)
@@ -221,7 +219,12 @@ class SiteTests(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['url'], self.site1.url)
 
-    def test_update(self):
+    def test_post(self):
+        response = self.client.post(self.DETAIL_API_URL)
+        expected_code = status.HTTP_405_METHOD_NOT_ALLOWED
+        self.assertEqual(response.status_code, expected_code)
+
+    def test_put(self):
         response = self.client.put(self.DETAIL_API_URL, self.NEW_DATA)
         self.assertEqual(response.status_code, 200)
 
@@ -229,7 +232,7 @@ class SiteTests(APITestCase):
         new_url = Site.objects.get(id=self.site1.id).url
         self.assertEqual(new_url, self.NEW_DATA['url'])
 
-    def test_partial_update(self):
+    def test_patch(self):
         response = self.client.patch(self.DETAIL_API_URL, self.NEW_DATA)
         self.assertEqual(response.status_code, 200)
 
@@ -248,7 +251,7 @@ class SiteTests(APITestCase):
 
 class PageTests(APITestCase):
     LIST_API_URL = '/api/pages/'
-    DETAIL_API_URL = None
+    DETAIL_API_URL = ''
     NEW_DATA = {'path': 'newpage'}
 
     @classmethod
@@ -263,15 +266,15 @@ class PageTests(APITestCase):
         response = self.client.get(self.LIST_API_URL)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_create_not_found(self):
+    def test_post_list_not_found(self):
         response = self.client.post(self.LIST_API_URL)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_update_list_not_found(self):
+    def test_put_list_not_found(self):
         response = self.client.put(self.LIST_API_URL)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_partial_update_list_not_found(self):
+    def test_patch_list_not_found(self):
         response = self.client.patch(self.LIST_API_URL)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -284,7 +287,12 @@ class PageTests(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['path'], self.page1.path)
 
-    def test_update(self):
+    def test_post(self):
+        response = self.client.post(self.DETAIL_API_URL)
+        expected_code = status.HTTP_405_METHOD_NOT_ALLOWED
+        self.assertEqual(response.status_code, expected_code)
+
+    def test_put(self):
         response = self.client.put(self.DETAIL_API_URL, self.NEW_DATA)
         self.assertEqual(response.status_code, 200)
 
@@ -292,7 +300,7 @@ class PageTests(APITestCase):
         new_path = Page.objects.get(id=self.page1.id).path
         self.assertEqual(new_path, self.NEW_DATA['path'])
 
-    def test_partial_update(self):
+    def test_patch(self):
         response = self.client.patch(self.DETAIL_API_URL, self.NEW_DATA)
         self.assertEqual(response.status_code, 200)
 
@@ -307,3 +315,139 @@ class PageTests(APITestCase):
         # Confirm page has been deleted.
         with self.assertRaisesMessage(Page.DoesNotExist, ''):
             Page.objects.get(id=self.page1.id)
+
+
+class VisitTests(APITestCase):
+    LIST_API_URL = reverse('visit-list')
+    DETAIL_API_URL = ''
+    NEW_DATA = {'page': 1}
+    ACTIONS = [
+        {'type': 'mm', 'x': 10, 'y': 10, 'performed': 100},
+        {'type': 'mm', 'x': 20, 'y': 10, 'performed': 200},
+        {'type': 'mm', 'x': 20, 'y': 20, 'performed': 300},
+    ]
+
+    @classmethod
+    def setUpTestData(cls):
+        create_test_data(cls)
+
+    def setUp(self):
+        self.DETAIL_API_URL = reverse('visit-detail', args=[self.visit1.id])
+        login(self.client, self.user1)
+
+    def test_get_list_not_allowed(self):
+        response = self.client.get(self.LIST_API_URL)
+        expected_code = status.HTTP_405_METHOD_NOT_ALLOWED
+        self.assertEqual(response.status_code, expected_code)
+
+    def test_post_list_existing_page_no_previous(self):
+        self.client.logout()
+
+        URL = f'https://{self.site1.url}/{self.page1.path}'
+        DATA = {'url': URL, 'previous': None, 'actions': self.ACTIONS}
+        response = self.client.post(self.LIST_API_URL, DATA)
+
+        # Confirm visit has been created.
+        new_visit = Visit.objects.get(id=response.data['visit'])
+        self.assertEqual(new_visit.page, self.page1)
+        self.assertEqual(new_visit.previous, None)
+        self.assertEqual(new_visit.actions.count(), len(self.ACTIONS))
+
+        # Test actions content.
+        for i, action in enumerate(new_visit.actions.all()):
+            serializer = ActionSerializer(action, exclude=['id'])
+            self.assertEqual(serializer.data, self.ACTIONS[i])
+
+    def test_post_list_existing_page_with_previous(self):
+        self.client.logout()
+
+        URL = f'https://{self.site1.url}/{self.page2.path}'
+        DATA = {'url': URL, 'previous': self.visit1.id, 'actions': self.ACTIONS}
+        response = self.client.post(self.LIST_API_URL, DATA)
+
+        # Confirm visit has been created and previous field assigned.
+        new_visit = Visit.objects.get(id=response.data['visit'])
+        self.assertEqual(new_visit.previous, self.visit1)
+
+    def test_post_list_new_page(self):
+        self.client.logout()
+
+        site_count_before = Site.objects.count()
+        page_count_before = Page.objects.count()
+        visit_count_before = Visit.objects.count()
+
+        URL = f'https://{self.site1.url}/newpage'
+        DATA = {'url': URL, 'previous': None, 'actions': self.ACTIONS}
+        response = self.client.post(self.LIST_API_URL, DATA)
+
+        # Confirm visit and page have been created.
+        Visit.objects.get(id=response.data['visit'])
+        self.assertEqual(Site.objects.count(), site_count_before)
+        self.assertEqual(Page.objects.count(), page_count_before + 1)
+        self.assertEqual(Visit.objects.count(), visit_count_before + 1)
+
+    def test_post_list_new_site_not_found(self):
+        self.client.logout()
+
+        site_count_before = Site.objects.count()
+        page_count_before = Page.objects.count()
+        visit_count_before = Visit.objects.count()
+
+        URL = f'https://newsite.com/newpage'
+        DATA = {'url': URL, 'previous': None, 'actions': self.ACTIONS}
+        response = self.client.post(self.LIST_API_URL, DATA)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        # Confirm visit has not been created.
+        self.assertEqual(Site.objects.count(), site_count_before)
+        self.assertEqual(Page.objects.count(), page_count_before)
+        self.assertEqual(Visit.objects.count(), visit_count_before)
+
+    def test_put_list_not_allowed(self):
+        response = self.client.put(self.LIST_API_URL)
+        expected_code = status.HTTP_405_METHOD_NOT_ALLOWED
+        self.assertEqual(response.status_code, expected_code)
+
+    def test_patch_list_not_allowed(self):
+        response = self.client.patch(self.LIST_API_URL)
+        expected_code = status.HTTP_405_METHOD_NOT_ALLOWED
+        self.assertEqual(response.status_code, expected_code)
+
+    def test_delete_list_not_allowed(self):
+        response = self.client.delete(self.LIST_API_URL)
+        expected_code = status.HTTP_405_METHOD_NOT_ALLOWED
+        self.assertEqual(response.status_code, expected_code)
+
+    def test_get_not_allowed(self):
+        response = self.client.get(self.DETAIL_API_URL)
+        expected_code = status.HTTP_405_METHOD_NOT_ALLOWED
+        self.assertEqual(response.status_code, expected_code)
+
+    def test_post_not_allowed(self):
+        response = self.client.post(self.DETAIL_API_URL)
+        expected_code = status.HTTP_405_METHOD_NOT_ALLOWED
+        self.assertEqual(response.status_code, expected_code)
+
+    def test_put_not_allowed(self):
+        response = self.client.put(self.DETAIL_API_URL)
+        expected_code = status.HTTP_405_METHOD_NOT_ALLOWED
+        self.assertEqual(response.status_code, expected_code)
+
+    def test_patch(self):
+        self.client.logout()
+
+        action_count_before = self.visit1.actions.count()
+
+        DATA = {'actions': self.ACTIONS}
+        response = self.client.patch(self.DETAIL_API_URL, DATA)
+
+        expected_action_count = action_count_before + len(self.ACTIONS)
+        self.assertEqual(self.visit1.actions.count(), expected_action_count)
+
+    def test_delete(self):
+        response = self.client.delete(self.DETAIL_API_URL)
+        self.assertEqual(response.status_code, 204)
+
+        # Confirm visit has been deleted.
+        with self.assertRaisesMessage(Visit.DoesNotExist, ''):
+            Visit.objects.get(id=self.visit1.id)

@@ -85,12 +85,10 @@ class VisitCreate(CreateAPIView):
         if None in [site_url, path]:
             raise ParseError()
 
-        print(f"searching page '{site_url}/{path}'...")
         page = Page.objects.get_or_none(site__url=site_url, path=path)
         if page is not None:
             return page
 
-        print(f"searching site '{site_url}'...")
         site = Site.objects.get_or_404(url=site_url)
         return Page.objects.create(path=path, site=site)
 
