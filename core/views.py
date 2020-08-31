@@ -10,7 +10,7 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
-from .models import Action, Page, Site, Visit
+from core.models import Action, Page, Site, Visit
 from .pagination import ActionsPagination
 from .permissions import ActionsOrIsAuthenticated
 from .serializers import (ActionSerializer, PageSerializer, SiteSerializer,

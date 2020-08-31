@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.serializers import ModelSerializer, PrimaryKeyRelatedField
 from rest_framework.exceptions import NotFound, ParseError, ValidationError
 
-from .models import Action, Page, Site, Visit
+from core.models import Action, Page, Site, Visit
 
 User = get_user_model()
 
@@ -30,11 +30,10 @@ class ActionSerializer(ModelSerializer):
     class Meta:
         model = Action
         fields = ['id', 'type', 'x', 'y', 'performed']
-        read_only_fields = ['id']
 
 
 class VisitSerializer(FieldsFilterMixin, ModelSerializer):
-    page = PrimaryKeyRelatedField(queryset=Page.objects.all(), required=False)
+    page = PrimaryKeyRelatedField(queryset=Page.objects.all(), required=False)# read_only=True instead?
     previous = PrimaryKeyRelatedField(
         queryset=Visit.objects.all(), allow_null=True)  # TODO filter by same user as current visit
     next = PrimaryKeyRelatedField(read_only=True)
@@ -43,7 +42,6 @@ class VisitSerializer(FieldsFilterMixin, ModelSerializer):
     class Meta:
         model = Visit
         fields = ['id', 'started', 'page', 'previous', 'next', 'actions']
-        read_only_fields = ['id', 'next']
 
     def create(self, validated_data):
         visit_data = {k: validated_data[k] for k in ['page', 'previous']}
@@ -57,29 +55,27 @@ class VisitSerializer(FieldsFilterMixin, ModelSerializer):
 
 
 class PageSerializer(FieldsFilterMixin, ModelSerializer):
-    visits = VisitSerializer(many=True, fields=['id', 'started'])
+    visits = VisitSerializer(
+        many=True, fields=['id', 'started'], read_only=True)
 
     class Meta:
         model = Page
         fields = ['id', 'path', 'visits']
-        read_only_fields = ['id', 'visits']
 
 
 class SiteSerializer(FieldsFilterMixin, ModelSerializer):
-    pages = PageSerializer(many=True, fields=['id', 'path'])
+    pages = PageSerializer(many=True, fields=['id', 'path'], read_only=True)
     visits = VisitSerializer(many=True, source='get_visits',
-                             fields=['id', 'started'])
+                             fields=['id', 'started'], read_only=True)
 
     class Meta:
         model = Site
         fields = ['id', 'url', 'pages', 'visits']
-        read_only_fields = ['id', 'pages', 'visits']
 
 
 class UserSerializer(ModelSerializer):
-    sites = SiteSerializer(many=True, fields=['id', 'url'])
+    sites = SiteSerializer(many=True, fields=['id', 'url'], read_only=True)
 
     class Meta:
         model = User
         fields = ['id', 'username', 'sites']
-        read_only_fields = ['id', 'sites']

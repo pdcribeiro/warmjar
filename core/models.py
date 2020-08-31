@@ -17,7 +17,7 @@ def get_or_404(self, **kwargs):
     try:
         return self.model.objects.get(**kwargs)
     except self.model.DoesNotExist:
-        raise NotFound(f'{self.__class__.__name__} not found.')
+        raise NotFound()
 
 
 models.Manager.get_or_none = get_or_none
@@ -40,7 +40,7 @@ class Site(models.Model):
 
     @staticmethod
     def parse_url(url):
-        match = re.search('(https?://)?(www.)?([^/]+)/', url)
+        match = re.search('(https?://)?(www.)?([^/]+)/?', url)
         return match and match.group(3)
 
 
@@ -61,7 +61,7 @@ class Page(models.Model):
 
     @staticmethod
     def parse_path(url):
-        match = re.search('(https?://)?(www.)?[^/]+/([^\?]+)\??', url)
+        match = re.search('(https?://)?(www.)?[^/]+/?([^\?]+)\??', url)
         return match and match.group(3).rstrip('/')
 
 
