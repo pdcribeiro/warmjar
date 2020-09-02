@@ -35,7 +35,7 @@ function App() {
   if (!auth.loggedIn) {
     return (
       <>
-        <Login checkAuth={auth.check} />
+        <Login onLogin={auth.check} />
         <Redirect to="/login" noThrow />
       </>
     );
@@ -43,7 +43,7 @@ function App() {
 
   return (
     <>
-      <Header checkAuth={auth.check} />
+      <Header onLogout={auth.check} />
       <Styled>
         <Router>
         {/* <Router style={{ width: '100%' }}> */}

@@ -21,7 +21,7 @@ const Styled = styled.div`
   }
 `;
 
-export function Login({ checkAuth }) {
+export function Login({ onLogin }) {
   const csrfToken = useCSRFToken();
 
   function handleSubmit(event) {
@@ -29,7 +29,7 @@ export function Login({ checkAuth }) {
     const config = { headers: { 'Content-Type': 'multipart/form-data' } };
     axios
       .post('/api/auth/login/', loginData, config)
-      .then(checkAuth)
+      .then(onLogin)
       .catch(error => console.log(error));
     event.preventDefault();
   }

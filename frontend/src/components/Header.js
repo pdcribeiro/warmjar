@@ -20,9 +20,9 @@ const Styled = styled.div`
   }
 `;
 
-export function Header({ checkAuth }) {
+export function Header({ onLogout }) {
   function logout() {
-    axios.get('/api/auth/logout/').then(checkAuth);
+    axios.get('/api/auth/logout/').then(onLogout);
   }
 
   return (
