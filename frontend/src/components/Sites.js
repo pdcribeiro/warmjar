@@ -14,37 +14,47 @@ export function Sites() {
   );
 }
 
-function SiteList() {
+export function SiteList() {
   const [sites, setSites] = useState([]);
 
   useEffect(() => {
-    axios.get('/api/sites/').then(response => setSites(response.data.results));
+    axios
+      .get('/api/sites/')
+      .then(response => setSites(response.data.results))
+      .catch(error => {
+        setSites(null);
+        // console.error(error);
+      });
   }, []);
 
-  useEffect(() => console.log('sites: ', sites), [sites]);
+  // useEffect(() => console.log('sites: ', sites), [sites]);
 
   return (
     <>
       <h2>Sites</h2>
       <ul>
-        {sites.map(site => (
-          <li key={site.id}>
-            <a href={'/sites/' + site.id}>{site.url}</a>
-          </li>
-        ))}
+        {sites === null ? (
+          <li>Failed to fetch sites.</li>
+        ) : (
+          sites.map(site => (
+            <li key={site.id}>
+              <a href={'/sites/' + site.id}>{site.url}</a>
+            </li>
+          ))
+        )}
       </ul>
     </>
   );
 }
 
-function SiteDetail({ siteID }) {
+export function SiteDetail({ siteID }) {
   const [site, setSite] = useState(null);
 
   useEffect(() => {
     axios.get('/api/sites/' + siteID).then(response => setSite(response.data));
   }, []);
 
-  useEffect(() => console.log('site: ', site), [site]);
+  // useEffect(() => console.log('site: ', site), [site]);
 
   if (site === null) {
     return <p>Loading...</p>;

@@ -25,7 +25,7 @@ export function PageDetail({ pageID }) {
     axios.get('/api/pages/' + pageID).then(response => setPage(response.data));
   }, []);
 
-  useEffect(() => console.log('page: ', page), [page]);
+  // useEffect(() => console.log('page: ', page), [page]);
 
   if (page === null) {
     return <p>Loading...</p>;

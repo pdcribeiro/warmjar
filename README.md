@@ -27,6 +27,7 @@ Retrieve list of actions related to visit
 
 WIP
 * tests
+  - react: jest, react-testing-library
 
 Record
 * handle different sized windows
@@ -37,10 +38,10 @@ Record
 
 Play
 * update list after delete
+* actions "pagination"
 
 General
 * tests
-  - django
   - react
   - selenium
 * ci
@@ -75,6 +76,7 @@ Record
 
 Play
 * Render DOM and mutations
+* Pagination
 
 
 ### LATER
@@ -107,6 +109,7 @@ General
 * handle zoom (record and play)
 * Is auth check needed if filtering with queryset?
 * Reply with new and/or current action count on visit post_list and patch
+* More tests
 
 
 ## Bugs
