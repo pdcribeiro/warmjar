@@ -19,7 +19,7 @@ it('fetches and displays sites', async () => {
 
   const { findAllByRole } = render(<SiteList />);
   
-  expect(axios.get.mock.calls.length).toBe(1);
+  expect(axios.get).toHaveBeenCalledTimes(1);
 
   const items = await findAllByRole('link');
   expect(items).toHaveLength(2);
@@ -34,7 +34,7 @@ it('displays error message when fails to fetch sites', async () => {
 
   const { findAllByRole, queryByRole } = render(<SiteList />);
 
-  expect(axios.get.mock.calls.length).toBe(1);
+  expect(axios.get).toHaveBeenCalledTimes(1);
 
   const items = await findAllByRole('listitem');
   expect(items).toHaveLength(1);
