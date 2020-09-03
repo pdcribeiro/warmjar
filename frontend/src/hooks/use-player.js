@@ -1,27 +1,13 @@
 import axios from 'axios';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-const playerContext = createContext();
-
-export function ProvidePlayer({ children }) {
-  const player = useProvidePlayer();
-
-  return (
-    <playerContext.Provider value={player}>{children}</playerContext.Provider>
-  );
-}
-
-export const usePlayer = () => {
-  return useContext(playerContext);
-};
-
 let startedPlaying = null;
 // let pausedPlaying = new Date(0);
 let timer = null;
 let actions = [];
 let actionIndex = 0;
 
-function useProvidePlayer() {
+function usePlayer() {
   const [visit, setVisit] = useState(null);
   const [playing, setPlaying] = useState(false);
   const [mousePosition, setMousePosition] = useState({});
@@ -29,13 +15,11 @@ function useProvidePlayer() {
 
   useEffect(() => {
     if (visit) {
-      axios
-        .get(`/api/visits/${visit}/actions/`)
-        .then(response => {
-          actions = response.data.results;
-          // console.log(actions.slice(0, 10));
-          reset();
-        });
+      axios.get(`/api/visits/${visit}/actions/`).then(response => {
+        actions = response.data.results;
+        // console.log(actions.slice(0, 10));
+        reset();
+      });
     }
   }, [visit]);
 
@@ -121,7 +105,7 @@ function useProvidePlayer() {
     // console.log('Stopped playing.');
   }
 
-  // TODO Pause logic
+  // TODO pause logic
   function pause() {
     clearInterval(timer);
     setPlaying(false);
@@ -138,3 +122,19 @@ function useProvidePlayer() {
     stop,
   };
 }
+
+const playerContext = createContext();
+
+export function PlayerProvider({ children }) {
+  const player = usePlayer();
+
+  return (
+    <playerContext.Provider value={player}>{children}</playerContext.Provider>
+  );
+}
+
+function usePlayerContext() {
+  return useContext(playerContext);
+}
+
+export { usePlayerContext as usePlayer };

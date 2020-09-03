@@ -2,8 +2,8 @@ import axios from 'axios';
 import React, { useEffect } from 'react';
 import styled from 'styled-components';
 
-import { usePlayer } from '../hooks/use-player';
 import { useCSRFToken } from '../hooks/use-csrf-token';
+import { usePlayer } from '../hooks/use-player';
 
 const Visit = styled.li`
   display: flex;

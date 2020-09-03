@@ -2,16 +2,18 @@ import axios from 'axios';
 import { useEffect, useState } from 'react';
 
 export function useAuth() {
-  const [loggedIn, setLoggedIn] = useState(null);
+  const [user, setUser] = useState(undefined);
 
-  useEffect(checkAuth, []);
+  useEffect(check, []);
 
-  function checkAuth() {
+  function check() {
     axios
       .get('/api/sites/')
-      .then(() => setLoggedIn(true))
-      .catch(() => setLoggedIn(false));
+      .then(() => setUser('user'))
+      .catch(() => setUser(null));
   }
 
-  return { loggedIn, check: checkAuth };
+  // useEffect(() => console.log('user:', user), [user]);
+
+  return { user, check };
 }

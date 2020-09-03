@@ -3,13 +3,10 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
-import { ProvidePlayer } from './hooks/use-player.js';
 
 ReactDOM.render(
   <React.StrictMode>
-    <ProvidePlayer>
-      <App />
-    </ProvidePlayer>
+    <App />
   </React.StrictMode>,
   document.getElementById('root')
 );

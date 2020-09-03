@@ -12,7 +12,7 @@ const Styled = styled.div`
 
   h1 {
     margin: 0;
-    color: #333;
+    color: black;
   }
 
   button {

@@ -1,38 +1,21 @@
-import { Redirect, Router } from '@reach/router';
+import { Redirect } from '@reach/router';
 import React from 'react';
-import styled from 'styled-components';
 
-import { Header } from './components/Header';
 import { Login } from './components/Login';
-import { PageDetail } from './components/Pages';
-import { Player } from './components/Player';
-import { Sites } from './components/Sites';
+import { Main } from './components/Main';
 import { useAnchorElements } from './hooks/use-anchor-elements';
 import { useAuth } from './hooks/use-auth';
-import { usePlayer } from './hooks/use-player.js';
-
-const Styled = styled.div`
-  display: flex;
-  justify-content: space-between;
-  /* align-items: flex-start; */
-  flex-wrap: wrap;
-  padding: 0px 20px 20px;
-
-  > div:not(:last-child) {
-    margin-right: 20px;
-  }
-`;
+import { PlayerProvider } from './hooks/use-player.js';
 
 function App() {
   const auth = useAuth();
-  const { visit } = usePlayer();
   useAnchorElements();
 
-  if (auth.loggedIn === null) {
+  if (auth.user === undefined) {
     return <h1>Loading...</h1>;
   }
 
-  if (!auth.loggedIn) {
+  if (auth.user === null) {
     return (
       <>
         <Login onLogin={auth.check} />
@@ -42,26 +25,10 @@ function App() {
   }
 
   return (
-    <>
-      <Header onLogout={auth.check} />
-      <Styled>
-        <Router>
-        {/* <Router style={{ width: '100%' }}> */}
-          <Sites path="sites/*" />
-          <PageDetail path="pages/:pageID" />
-
-          <NotFound default />
-          <Redirect from="/" to="/sites" noThrow />
-          <Redirect from="/login" to="/sites" noThrow />
-        </Router>
-        {visit && <Player />}
-      </Styled>
-    </>
+    <PlayerProvider>
+      <Main onLogout={auth.check} />
+    </PlayerProvider>
   );
-}
-
-function NotFound() {
-  return <h2>Not found</h2>;
 }
 
 export default App;

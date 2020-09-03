@@ -41,16 +41,16 @@ export function Login({ onLogin }) {
         <input
           type="text"
           name="username"
-          defaultValue="user"
           placeholder="username"
+          required
         />
         <input
           type="password"
           name="password"
-          defaultValue="user"
           placeholder="password"
+          required
         />
-        <input type="submit" value="Login" />
+        <button type="submit">Login</button>
       </form>
     </Styled>
   );
