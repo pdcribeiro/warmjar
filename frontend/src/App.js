@@ -8,17 +8,17 @@ import { useAuth } from './hooks/use-auth';
 import { PlayerProvider } from './hooks/use-player.js';
 
 function App() {
-  const auth = useAuth();
+  const {user, login, logout} = useAuth();
   useAnchorElements();
 
-  if (auth.user === undefined) {
+  if (user === undefined) {
     return <h1>Loading...</h1>;
   }
 
-  if (auth.user === null) {
+  if (user === null) {
     return (
       <>
-        <Login onLogin={auth.check} />
+        <Login login={login} />
         <Redirect to="/login" noThrow />
       </>
     );
@@ -26,7 +26,7 @@ function App() {
 
   return (
     <PlayerProvider>
-      <Main onLogout={auth.check} />
+      <Main logout={logout} />
     </PlayerProvider>
   );
 }

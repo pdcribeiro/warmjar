@@ -1,4 +1,3 @@
-import axios from 'axios';
 import React from 'react';
 import styled from 'styled-components';
 
@@ -20,14 +19,12 @@ const Styled = styled.div`
   }
 `;
 
-export function Header({ onLogout }) {
-  function logout() {
-    axios.get('/api/auth/logout/').then(onLogout);
-  }
-
+export function Header({ logout }) {
   return (
     <Styled>
-      <a href="/"><h1>Warmjar</h1></a>
+      <a href="/">
+        <h1>Warmjar</h1>
+      </a>
       <button onClick={logout}>Logout</button>
     </Styled>
   );

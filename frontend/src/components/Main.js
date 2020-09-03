@@ -6,7 +6,6 @@ import { Header } from './Header';
 import { PageDetail } from './Pages';
 import { Player } from './Player';
 import { Sites } from './Sites';
-import { usePlayer } from '../hooks/use-player.js';
 
 const Styled = styled.div`
   display: flex;
@@ -20,12 +19,10 @@ const Styled = styled.div`
   }
 `;
 
-export function Main({onLogout}) {
-  const { visit } = usePlayer();
-
+export function Main({ logout }) {
   return (
     <>
-      <Header onLogout={onLogout} />
+      <Header logout={logout} />
       <Styled>
         <Router>
         {/* <Router style={{ width: '100%' }}> */}
@@ -36,7 +33,7 @@ export function Main({onLogout}) {
           <Redirect from="/" to="/sites" noThrow />
           <Redirect from="/login" to="/sites" noThrow />
         </Router>
-        {visit && <Player />}
+        <Player />
       </Styled>
     </>
   );

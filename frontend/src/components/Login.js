@@ -1,8 +1,8 @@
 import axios from 'axios';
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 
-import { useCSRFToken } from '../hooks/use-csrf-token';
+import { getCSRFToken } from '../csrf-token';
 
 const Styled = styled.div`
   display: flex;
@@ -21,34 +21,33 @@ const Styled = styled.div`
   }
 `;
 
-export function Login({ onLogin }) {
-  const csrfToken = useCSRFToken();
+export function Login({ login }) {
+  const csrfTokenPromise = getCSRFToken();
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
 
-  function handleSubmit(event) {
-    const loginData = new FormData(event.target);
-    const config = { headers: { 'Content-Type': 'multipart/form-data' } };
-    axios
-      .post('/api/auth/login/', loginData, config)
-      .then(onLogin)
-      .catch(error => console.log(error));
+  async function handleSubmit(event) {
+    // login(username, password, csrfToken);
     event.preventDefault();
+    login(username, password, await csrfTokenPromise);
   }
 
   return (
     <Styled>
       <form onSubmit={handleSubmit}>
-        <input type="hidden" name="csrfmiddlewaretoken" value={csrfToken} />
         <input
           type="text"
-          name="username"
+          value={username}
           placeholder="username"
           required
+          onChange={e => setUsername(e.target.value)}
         />
         <input
           type="password"
-          name="password"
+          value={password}
           placeholder="password"
           required
+          onChange={e => setPassword(e.target.value)}
         />
         <button type="submit">Login</button>
       </form>

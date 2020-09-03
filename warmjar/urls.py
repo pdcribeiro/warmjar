@@ -1,11 +1,11 @@
 from django.contrib import admin
 from django.urls import path, include
 
-from core.views import index
+from core.views import Index
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/auth/', include('rest_framework.urls')),
+    path('', Index.as_view(), name='index'),
     path('api/', include('core.urls')),
-    path('', index, name='index'),
+    path('api/auth/', include('rest_framework.urls')),
+    path('admin/', admin.site.urls),
 ]

@@ -33,14 +33,14 @@ export function SiteList() {
     <>
       <h2>Sites</h2>
       <ul>
-        {sites === null ? (
-          <li>Failed to fetch sites.</li>
-        ) : (
+        {sites ? (
           sites.map(site => (
             <li key={site.id}>
               <a href={'/sites/' + site.id}>{site.url}</a>
             </li>
           ))
+        ) : (
+          <li>Failed to fetch sites.</li>
         )}
       </ul>
     </>

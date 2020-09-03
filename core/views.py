@@ -1,12 +1,14 @@
-from django.contrib.auth import get_user_model
-from django.http import HttpResponse
+from django.contrib.auth import authenticate, get_user_model, login, logout
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework import status
 from rest_framework import generics, mixins  # TMP
-from rest_framework.exceptions import NotFound, ParseError, ValidationError
+from rest_framework.exceptions import AuthenticationFailed, NotFound, ParseError, ValidationError
 from rest_framework.generics import CreateAPIView, DestroyAPIView, ListAPIView, RetrieveUpdateDestroyAPIView
-from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import AllowAny, IsAdminUser
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from core.models import Action, Page, Site, Visit
@@ -24,6 +26,42 @@ def index(request):
     if request.path == '/api/':
         return HttpResponse(status=status.HTTP_204_NO_CONTENT)
     return render(request, 'build/index.html')
+
+
+class Index(APIView):
+    """Provides frontend or CSRF token."""
+    permission_classes = [AllowAny]
+
+    # @ensure_csrf_cookie
+    def get(self, request):
+        if request.path == '/api/':
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return render(request, 'build/index.html')
+
+
+class AuthCheck(APIView):
+    """Provides the currently logged in user."""
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        user = request.user.username if request.user.is_authenticated else None
+        return Response({'user': user})
+
+
+class Login(APIView):
+    """Logs a user in."""
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        username = request.data.get('username')
+        password = request.data.get('password')
+        user = authenticate(request, username=username, password=password)
+
+        if user is None:
+            raise AuthenticationFailed()
+
+        login(request, user)
+        return Response({'user': user.username})
 
 
 class UserViewSet(ReadOnlyModelViewSet):

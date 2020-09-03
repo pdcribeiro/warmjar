@@ -2,7 +2,7 @@ import axios from 'axios';
 import React, { useEffect } from 'react';
 import styled from 'styled-components';
 
-import { useCSRFToken } from '../hooks/use-csrf-token';
+import { getCSRFToken } from '../csrf-token';
 import { usePlayer } from '../hooks/use-player';
 
 const Visit = styled.li`
@@ -18,8 +18,8 @@ const DeleteButton = styled.div`
 `;
 
 export function VisitList({ visits }) {
+  const csrfTokenPromise = getCSRFToken();
   const { visit, setVisit } = usePlayer();
-  const csrfToken = useCSRFToken();
 
   useEffect(() => () => setVisit(null), []);
 
@@ -27,8 +27,8 @@ export function VisitList({ visits }) {
     setVisit(prevVisit => (visit !== prevVisit ? visit : null));
   }
 
-  function deleteVisit(event, visit) {
-    const config = { headers: { 'X-CSRFToken': csrfToken } };
+  async function deleteVisit(event, visit) {
+    const config = { headers: { 'X-CSRFToken': await csrfTokenPromise } };
     axios
       .delete(`/api/visits/${visit}/`, config)
       .catch(error => console.error(error));
