@@ -4,10 +4,6 @@ export function postLogin(username, password) {
   return axios.post('/api/auth/login/', { username, password });
 }
 
-export function getUser() {
-  return axios.get('/api/auth/');
-}
-
 export function getLogout() {
   return axios.get('/api/auth/logout/');
 }

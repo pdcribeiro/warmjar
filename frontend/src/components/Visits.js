@@ -32,7 +32,7 @@ export function VisitList({ visits, onDelete }) {
 
   return (
     <>
-      <h2 onClick={() => deleteVisit(7)}>Visits</h2>
+      <h2>Visits</h2>
       <ul>
         {visits ? (
           visits.map(v => (

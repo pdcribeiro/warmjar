@@ -21,21 +21,15 @@ User = get_user_model()
 
 
 class Frontend(APIView):
-    """Provides frontend."""
+    """Provides the frontend."""
     permission_classes = [AllowAny]
 
     # @ensure_csrf_cookie
     def get(self, request, path=None):
-        return render(request, 'build/index.html')
-
-
-class AuthCheck(APIView):
-    """Provides the currently logged in user."""
-    permission_classes = [AllowAny]
-
-    def get(self, request):
-        user = request.user.username if request.user.is_authenticated else None
-        return Response(user)
+        response = render(request, 'build/index.html')
+        user = request.user.username if request.user.is_authenticated else ''
+        response.set_cookie('user', user)
+        return response
 
 
 class Login(APIView):
@@ -51,7 +45,10 @@ class Login(APIView):
             raise AuthenticationFailed()
 
         login(request, user)
-        return Response(user.username)
+
+        response = Response(user.username)
+        response.set_cookie('user', user)  # DEV
+        return response
 
 
 class UserViewSet(ReadOnlyModelViewSet):

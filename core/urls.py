@@ -8,7 +8,6 @@ router.register(r'users', views.UserViewSet)
 router.register(r'sites', views.SiteViewSet, basename='site')
 
 urlpatterns = [
-    path('auth/', views.AuthCheck.as_view(), name='auth-check'),
     path('auth/login/', views.Login.as_view(), name='login'),
     path('auth/', include('rest_framework.urls')),
     

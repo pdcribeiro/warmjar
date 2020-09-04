@@ -26,10 +26,7 @@ Retrieve list of actions related to visit
 ## TODO
 
 WIP
-* tests
-  - react: jest, react-testing-library
-* fix fetching site list twice
-* rest-api module
+* react tests with jest, react-testing-library
 
 Record
 * handle different sized windows
@@ -39,13 +36,10 @@ Record
   * local/session storage?
 
 Play
-* update list after delete
-* actions "pagination"
+* Pagination
 
 General
-* tests
-  - react
-  - selenium
+* e2e tests with cypress
 * ci
   - travis / jenkins
   - auto deploy master
@@ -54,6 +48,7 @@ General
 ## Roadmap
 
 ### V0.1.1
+
 Record
 * Mouse
   - Movement
@@ -63,22 +58,21 @@ Record
 * Don't record DOM
 
 Play
-* No auth system
 * List of sites, pages and visits
 * Selecting visit
   - Shows player
   - Allows play, pause and stop of action list
-* Fetch actions gradually
-* Play successive visits
+* Fetch more actions automatically
+* Play successive visits automatically
 
 
 ### V0.1.2
+
 Record
 * Record DOM and mutations
 
 Play
 * Render DOM and mutations
-* Pagination
 
 
 ### LATER
@@ -104,6 +98,7 @@ Play
 * use player content limiting dimension to handle portrait frames
 * confirm delete
 * allow admin to access all data
+* make browser prompt to save login details
 
 General
 * REST subscription? Long pooling? etc.
