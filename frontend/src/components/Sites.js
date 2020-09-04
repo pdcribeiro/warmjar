@@ -21,10 +21,7 @@ export function SiteList() {
     axios
       .get('/api/sites/')
       .then(response => setSites(response.data.results))
-      .catch(error => {
-        setSites(null);
-        // console.error(error);
-      });
+      .catch(() => setSites(null));
   }, []);
 
   // useEffect(() => console.log('sites: ', sites), [sites]);

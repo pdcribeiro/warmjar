@@ -11,21 +11,16 @@ export function useAuth() {
       .catch(() => setUser(null));
   }, []);
 
-  function login(username, password, csrfToken) {
-    if (username && password && csrfToken) {
-      const config = { headers: { 'X-CSRFToken': csrfToken } };
+  function login(username, password) {
+    if (username && password) {
       axios
-        .post('/api/auth/login/', { username, password }, config)
-        .then(response => setUser(response.data.user))
-        .catch(error => console.log(error));
+        .post('/api/auth/login/', { username, password })
+        .then(response => setUser(response.data.user));
     }
   }
 
   function logout() {
-    axios
-      .get('/api/auth/logout/')
-      .then(() => setUser(null))
-      .catch(error => console.log(error));
+    axios.get('/api/auth/logout/').then(() => setUser(null));
   }
 
   // useEffect(() => console.log('user:', user), [user]);

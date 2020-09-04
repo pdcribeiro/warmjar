@@ -1,8 +1,5 @@
-import axios from 'axios';
 import React, { useState } from 'react';
 import styled from 'styled-components';
-
-import { getCSRFToken } from '../csrf-token';
 
 const Styled = styled.div`
   display: flex;
@@ -22,14 +19,12 @@ const Styled = styled.div`
 `;
 
 export function Login({ login }) {
-  const csrfTokenPromise = getCSRFToken();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
   async function handleSubmit(event) {
-    // login(username, password, csrfToken);
+    login(username, password);
     event.preventDefault();
-    login(username, password, await csrfTokenPromise);
   }
 
   return (
