@@ -7,7 +7,7 @@ export function useAuth() {
   useEffect(() => {
     axios
       .get('/api/auth/')
-      .then(response => setUser(response.data.user))
+      .then(data => setUser(data.user))  // try without data.
       .catch(() => setUser(null));
   }, []);
 
@@ -15,7 +15,7 @@ export function useAuth() {
     if (username && password) {
       axios
         .post('/api/auth/login/', { username, password })
-        .then(response => setUser(response.data.user));
+        .then(data => setUser(data.user));
     }
   }
 

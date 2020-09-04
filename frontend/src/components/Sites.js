@@ -20,7 +20,7 @@ export function SiteList() {
   useEffect(() => {
     axios
       .get('/api/sites/')
-      .then(response => setSites(response.data.results))
+      .then(data => setSites(data.results))
       .catch(() => setSites(null));
   }, []);
 
@@ -48,7 +48,7 @@ export function SiteDetail({ siteID }) {
   const [site, setSite] = useState(null);
 
   useEffect(() => {
-    axios.get('/api/sites/' + siteID).then(response => setSite(response.data));
+    axios.get(`/api/sites/${siteID}/`).then(data => setSite(data));
   }, []);
 
   // useEffect(() => console.log('site: ', site), [site]);

@@ -15,7 +15,8 @@ axios.interceptors.response.use(
     const csrfToken = Cookies.get('csrftoken');
     axios.defaults.headers.post['X-CSRFToken'] = csrfToken;
     axios.defaults.headers.delete['X-CSRFToken'] = csrfToken;
-    return response;
+    // console.log('axios', response);
+    return response.data;
   },
   function (error) {
     console.error('axios: ', error);

@@ -34,16 +34,20 @@ export function VisitList({ visits }) {
     <>
       <h2 onClick={() => deleteVisit(7)}>Visits</h2>
       <ul>
-        {visits.map(v => (
-          <Visit
-            selected={v.id === visit}
-            key={v.id}
-            onClick={() => selectVisit(v.id)}
-          >
-            [{v.id}] {v.started}
-            <DeleteButton onClick={e => deleteVisit(e, v.id)}>X</DeleteButton>
-          </Visit>
-        ))}
+        {visits ? (
+          visits.map(v => (
+            <Visit
+              selected={v.id === visit}
+              key={v.id}
+              onClick={() => selectVisit(v.id)}
+            >
+              [{v.id}] {v.started}
+              <DeleteButton onClick={e => deleteVisit(e, v.id)}>X</DeleteButton>
+            </Visit>
+          ))
+        ) : (
+          <li>Failed to fetch visits.</li>
+        )}
       </ul>
     </>
   );

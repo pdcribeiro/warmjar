@@ -8,11 +8,15 @@ export function PageList({ pages }) {
     <>
       <h2>Pages</h2>
       <ul>
-        {pages.map(page => (
+        {pages ? (
+          pages.map(page => (
           <li key={page.id}>
             <a href={'/pages/' + page.id}>{page.path}</a>
           </li>
-        ))}
+        ))
+        ) : (
+          <li>Failed to fetch pages.</li>
+        )}
       </ul>
     </>
   );
@@ -22,7 +26,7 @@ export function PageDetail({ pageID }) {
   const [page, setPage] = useState(null);
 
   useEffect(() => {
-    axios.get('/api/pages/' + pageID).then(response => setPage(response.data));
+    axios.get(`/api/pages/${pageID}/`).then(data => setPage(data));
   }, []);
 
   // useEffect(() => console.log('page: ', page), [page]);

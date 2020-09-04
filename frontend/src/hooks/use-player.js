@@ -15,8 +15,8 @@ function usePlayer() {
 
   useEffect(() => {
     if (visit) {
-      axios.get(`/api/visits/${visit}/actions/`).then(response => {
-        actions = response.data.results;
+      axios.get(`/api/visits/${visit}/actions/`).then(data => {
+        actions = data.results;
         // console.log(actions.slice(0, 10));
         reset();
       });

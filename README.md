@@ -28,6 +28,8 @@ Retrieve list of actions related to visit
 WIP
 * tests
   - react: jest, react-testing-library
+* fix fetching site list twice
+* rest-api module
 
 Record
 * handle different sized windows

@@ -132,7 +132,7 @@ LOGIN_REDIRECT_URL = '/'
 
 
 CORS_ORIGIN_ALLOW_ALL = True
-# CORS_URLS_REGEX = r'^/api/(visits/\d+/)?actions/$'
+CORS_URLS_REGEX = r'^/api/visits/(\d+/)?$'
 CORS_ALLOW_METHODS = ['POST', 'PATCH']
 
 

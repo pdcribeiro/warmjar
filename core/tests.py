@@ -160,11 +160,6 @@ class CoreTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTemplateUsed(response, 'build/index.html')
 
-    def test_csrf_token_view(self):
-        response = self.client.get(reverse('csrf-token'))
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertTemplateNotUsed(response, 'build/index.html')
-
 
 class SiteTests(APITestCase):
     LIST_API_URL = reverse('site-list')

@@ -8,9 +8,10 @@ router.register(r'users', views.UserViewSet)
 router.register(r'sites', views.SiteViewSet, basename='site')
 
 urlpatterns = [
-    path('', views.Index.as_view(), name='csrf-token'),
     path('auth/', views.AuthCheck.as_view(), name='auth-check'),
     path('auth/login/', views.Login.as_view(), name='login'),
+    path('auth/', include('rest_framework.urls')),
+    
     path('', include(router.urls)),
     path('pages/<int:pk>/', views.PageDetail.as_view(), name='page-detail'),
     path('visits/', views.VisitCreate.as_view(), name='visit-list'),

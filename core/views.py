@@ -20,22 +20,12 @@ from .serializers import (ActionSerializer, PageSerializer, SiteSerializer,
 User = get_user_model()
 
 
-@ensure_csrf_cookie
-def index(request):
-    """Provides frontend or CSRF token."""
-    if request.path == '/api/':
-        return HttpResponse(status=status.HTTP_204_NO_CONTENT)
-    return render(request, 'build/index.html')
-
-
-class Index(APIView):
-    """Provides frontend or CSRF token."""
+class Frontend(APIView):
+    """Provides frontend."""
     permission_classes = [AllowAny]
 
     # @ensure_csrf_cookie
-    def get(self, request):
-        if request.path == '/api/':
-            return Response(status=status.HTTP_204_NO_CONTENT)
+    def get(self, request, path=None):
         return render(request, 'build/index.html')
 
 
