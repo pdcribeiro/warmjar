@@ -35,7 +35,7 @@ class AuthCheck(APIView):
 
     def get(self, request):
         user = request.user.username if request.user.is_authenticated else None
-        return Response({'user': user})
+        return Response(user)
 
 
 class Login(APIView):
@@ -51,7 +51,7 @@ class Login(APIView):
             raise AuthenticationFailed()
 
         login(request, user)
-        return Response({'user': user.username})
+        return Response(user.username)
 
 
 class UserViewSet(ReadOnlyModelViewSet):

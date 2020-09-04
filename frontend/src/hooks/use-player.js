@@ -1,5 +1,6 @@
-import axios from 'axios';
 import React, { createContext, useContext, useEffect, useState } from 'react';
+
+import {getActionList } from '../rest-api';
 
 let startedPlaying = null;
 // let pausedPlaying = new Date(0);
@@ -15,8 +16,8 @@ function usePlayer() {
 
   useEffect(() => {
     if (visit) {
-      axios.get(`/api/visits/${visit}/actions/`).then(data => {
-        actions = data.results;
+      getActionList(visit).then(newActions => {
+        actions = newActions;
         // console.log(actions.slice(0, 10));
         reset();
       });

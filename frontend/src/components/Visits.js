@@ -1,7 +1,7 @@
-import axios from 'axios';
 import React, { useEffect } from 'react';
 import styled from 'styled-components';
 
+import { deleteVisit } from '../rest-api';
 import { usePlayer } from '../hooks/use-player';
 
 const Visit = styled.li`
@@ -16,17 +16,17 @@ const DeleteButton = styled.div`
   color: red;
 `;
 
-export function VisitList({ visits }) {
+export function VisitList({ visits, onDelete }) {
   const { visit, setVisit } = usePlayer();
 
-  useEffect(() => () => setVisit(null), []);
+  useEffect(() => () => setVisit(null), [setVisit]);
 
   function selectVisit(visit) {
     setVisit(prevVisit => (visit !== prevVisit ? visit : null));
   }
 
-  async function deleteVisit(event, visit) {
-    axios.delete(`/api/visits/${visit}/`);
+  async function handleDelete(event, visitID) {
+    deleteVisit(visitID).then(onDelete);
     event.stopPropagation();
   }
 
@@ -42,7 +42,7 @@ export function VisitList({ visits }) {
               onClick={() => selectVisit(v.id)}
             >
               [{v.id}] {v.started}
-              <DeleteButton onClick={e => deleteVisit(e, v.id)}>X</DeleteButton>
+              <DeleteButton onClick={e => handleDelete(e, v.id)}>X</DeleteButton>
             </Visit>
           ))
         ) : (

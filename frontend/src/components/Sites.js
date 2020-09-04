@@ -1,7 +1,7 @@
-import axios from 'axios';
 import { Router } from '@reach/router';
 import React, { useEffect, useState } from 'react';
 
+import { getSiteList, getSite } from '../rest-api';
 import { PageList } from './Pages';
 import { VisitList } from './Visits';
 
@@ -18,9 +18,8 @@ export function SiteList() {
   const [sites, setSites] = useState([]);
 
   useEffect(() => {
-    axios
-      .get('/api/sites/')
-      .then(data => setSites(data.results))
+    getSiteList()
+      .then(siteList => setSites(siteList))
       .catch(() => setSites(null));
   }, []);
 
@@ -47,9 +46,11 @@ export function SiteList() {
 export function SiteDetail({ siteID }) {
   const [site, setSite] = useState(null);
 
-  useEffect(() => {
-    axios.get(`/api/sites/${siteID}/`).then(data => setSite(data));
-  }, []);
+  useEffect(fetchSite, [siteID]);
+
+  function fetchSite() {
+    getSite(siteID).then(site => setSite(site));
+  }
 
   // useEffect(() => console.log('site: ', site), [site]);
 
@@ -62,7 +63,7 @@ export function SiteDetail({ siteID }) {
     <>
       <h2>{url}</h2>
       <PageList pages={pages} />
-      <VisitList visits={visits} />
+      <VisitList visits={visits} onDelete={fetchSite} />
     </>
   );
 }

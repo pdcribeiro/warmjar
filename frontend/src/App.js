@@ -29,7 +29,7 @@ function App() {
   useAnchorElements();
 
   if (user === undefined) {
-    return <h1>Loading...</h1>;
+    return <></>;
   }
 
   if (user === null) {

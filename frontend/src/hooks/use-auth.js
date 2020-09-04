@@ -1,29 +1,24 @@
-import axios from 'axios';
 import { useEffect, useState } from 'react';
+
+import { getUser, postLogin, getLogout } from '../rest-api';
 
 export function useAuth() {
   const [user, setUser] = useState(undefined);
 
   useEffect(() => {
-    axios
-      .get('/api/auth/')
-      .then(data => setUser(data.user))  // try without data.
-      .catch(() => setUser(null));
+    getUser()
+      .then(user => setUser(user || null));
   }, []);
 
   function login(username, password) {
-    if (username && password) {
-      axios
-        .post('/api/auth/login/', { username, password })
-        .then(data => setUser(data.user));
-    }
+    postLogin(username, password).then(user => setUser(user));
   }
 
   function logout() {
-    axios.get('/api/auth/logout/').then(() => setUser(null));
+    getLogout().then(() => setUser(null));
   }
 
-  // useEffect(() => console.log('user:', user), [user]);
+  useEffect(() => console.log('user:', user), [user]);
 
   return { user, login, logout };
 }

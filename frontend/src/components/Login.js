@@ -23,7 +23,9 @@ export function Login({ login }) {
   const [password, setPassword] = useState('');
 
   async function handleSubmit(event) {
-    login(username, password);
+    if (username && password) {
+      login(username, password);
+    }
     event.preventDefault();
   }
 
