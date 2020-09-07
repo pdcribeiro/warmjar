@@ -1,6 +1,13 @@
 # warmjar
 
-## Possible actions
+## Frontend
+
+Load
+* Get user from cookie
+
+
+
+## REST API
 
 Retrive/create/update/delete site
 * GET/POST sites/

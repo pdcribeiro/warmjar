@@ -1,4 +1,5 @@
 import axios from 'axios';
+import Cookies from 'js-cookie';
 import React from 'react';
 import { render, wait } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -14,20 +15,15 @@ const SITES = [
 jest.mock('axios');
 
 it('redirects anonymous user to login page', async () => {
-  axios.get.mockRejectedValue(new Error());
   const { findByRole } = render(<App />);
   expect(await findByRole('button')).toHaveTextContent('Login');
 });
 
 it('logs user in', async () => {
-  axios.get
-    .mockRejectedValueOnce(new Error())
-    .mockResolvedValueOnce(AUTH)
-    .mockResolvedValue({ results: SITES });
   axios.post.mockResolvedValue(AUTH);
+  axios.get.mockResolvedValue({ results: SITES });
 
   const { getByPlaceholderText, getByRole, findByRole } = render(<App />);
-  expect(await findByRole('button')).toHaveTextContent('Login');
 
   ['username', 'password'].forEach(field =>
     userEvent.type(getByPlaceholderText(new RegExp(field, 'i')), 'user')
@@ -35,12 +31,12 @@ it('logs user in', async () => {
 
   userEvent.click(getByRole('button'));
 
-  // expect(await findByRole('list'));
+  expect(await findByRole('list'));
   await wait(() => expect(getByRole('button')).toHaveTextContent('Logout'));
 });
 
-it('redirects authenticated user to site list', async () => {
-  axios.get.mockResolvedValue(AUTH);
+it('redirects authenticated user to site list page', async () => {
+  Cookies.set('user', 'user');
 
   const { getByRole, findByRole } = render(<App />);
   

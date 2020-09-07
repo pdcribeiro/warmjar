@@ -15,10 +15,10 @@ it('fetches and displays sites', async () => {
     { id: 1, url: 'site1.com' },
     { id: 2, url: 'site2.com' },
   ];
-  axios.get.mockResolvedValue({ data: { results: SITES } });
+  axios.get.mockResolvedValue({ results: SITES });
 
   const { findAllByRole } = render(<SiteList />);
-  
+
   expect(axios.get).toHaveBeenCalledTimes(1);
 
   const items = await findAllByRole('link');
