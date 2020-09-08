@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.serializers import ModelSerializer, PrimaryKeyRelatedField
 from rest_framework.exceptions import NotFound, ParseError, ValidationError
 
-from core.models import Action, Page, Site, Visit
+from .models import Action, Page, Site, Visit
 
 User = get_user_model()
 

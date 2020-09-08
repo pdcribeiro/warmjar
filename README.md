@@ -6,7 +6,6 @@ Load
 * Get user from cookie
 
 
-
 ## REST API
 
 Retrive/create/update/delete site
@@ -33,7 +32,10 @@ Retrieve list of actions related to visit
 ## TODO
 
 WIP
-* react tests with jest, react-testing-library
+* actions pagination
+* autoplay next visit
+* setup demo on aws
+  - nginx routing
 
 Record
 * handle different sized windows
@@ -44,6 +46,7 @@ Record
 
 Play
 * Pagination
+* Option to autoplay next page
 
 General
 * e2e tests with cypress

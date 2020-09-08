@@ -11,9 +11,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
-from core.models import Action, Page, Site, Visit
+from .models import Action, Page, Site, Visit
 from .pagination import ActionsPagination
 from .permissions import ActionsOrIsAuthenticated
+from .parsers import PlainTextJSONParser
 from .serializers import (ActionSerializer, PageSerializer, SiteSerializer,
                           UserSerializer, VisitSerializer)
 
@@ -87,6 +88,7 @@ class VisitCreate(CreateAPIView):
     """Creates a visit with actions."""
     permission_classes = [ActionsOrIsAuthenticated]
     serializer_class = VisitSerializer
+    parser_classes = [PlainTextJSONParser]
 
     def post(self, request, *args, **kwargs):
         response = self.create(request, *args, **kwargs)
@@ -121,13 +123,14 @@ class VisitDetail(mixins.UpdateModelMixin, generics.DestroyAPIView):
     """Adds actions to or deletes a visit."""
     permission_classes = [ActionsOrIsAuthenticated]
     serializer_class = VisitSerializer
+    parser_classes = [PlainTextJSONParser]
 
     def get_queryset(self):
-        if self.request.method in ['POST', 'PATCH']:
+        if self.request.method == 'POST':
             return Visit.objects.all()
         return Visit.objects.filter(page__site__owner=self.request.user)
 
-    def patch(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         response = self.partial_update(request, *args, **kwargs)
         response.data = {'visit': response.data['id']}
         return response

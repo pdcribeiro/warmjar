@@ -4,6 +4,7 @@ var visitID = null;
 var prevVisitID;
 var actions = [];
 var loaded = new Date();
+var unloading = false;
 
 function init() {
   prevVisitID = sessionStorage.getItem('warmjar.visitID') || null;
@@ -17,15 +18,17 @@ function startRecording() {
   window.addEventListener('mouseup', handleMouseUp);
   // window.addEventListener('keydown', handleKeyDown);
   // window.addEventListener('keyup', handleKeyUp);
+  window.addEventListener('unload', handleUnload);
 }
 
-function stopRecording() {
+/* function stopRecording() {
   window.removeEventListener('mousemove', handleMouseMove);
   window.removeEventListener('mousedown', handleMouseDown);
   window.removeEventListener('mouseup', handleMouseUp);
   // window.removeEventListener('keydown', handleKeyDown);
   // window.removeEventListener('keyup', handleKeyUp);
-}
+  // window.removeEventListener('unload', handleUnload)
+} */
 
 function handleMouseMove(event) {
   createMouseAction('mm', event);
@@ -53,6 +56,11 @@ function createKeyAction(type, event) {
   createAction(type, { key: event.key });
 } */
 
+function handleUnload() {
+  unloading = true;
+  sendActions(actions);
+}
+
 function createAction(type, values) {
   actions.push({
     type,
@@ -66,30 +74,32 @@ function createAction(type, values) {
 }
 
 function sendActions(actions) {
+  var url = 'http://localhost:8000/api/visits/';
+  var data = { actions };
   if (visitID) {
-    var method = 'PATCH';
-    // var url = `http://localhost:8000/api/visits/${visitID}/actions/`;
-    var url = `http://localhost:8000/api/visits/${visitID}/`;
-    var data = { actions };
+    url += visitID + '/';
   } else {
-    var method = 'POST';
-    // var url = `http://localhost:8000/api/actions/`;
-    var url = `http://localhost:8000/api/visits/`;
-    var data = { actions, url: window.location.href, previous: prevVisitID };
+    data = { ...data, url: window.location.href, previous: prevVisitID };
   }
   console.log(
     'sending actions...',
     { ...data, actions: [] },
     actions.slice(0, 5)
   );
-  sendJSON(method, url, data)
+  sendJSON(url, data)
     .then(handleNewVisitID)
     .catch(error => console.error('Failed to send actions.', error));
 }
 
-function sendJSON(method, url, data) {
+function sendJSON(url, data) {
+  // if (unloading) {
+    var blob = new Blob([JSON.stringify(data)], { type: 'text/plain' });
+    navigator.sendBeacon(url, blob);
+    return;
+  // }
+
   var req = new XMLHttpRequest();
-  req.open(method, url);
+  req.open('POST', url);
   req.setRequestHeader('Content-Type', 'application/json');
 
   var promise = new Promise(function (resolve, reject) {
@@ -111,7 +121,7 @@ function sendJSON(method, url, data) {
 
 function handleNewVisitID(response) {
   console.log('Sent actions. Server replied with:', response);
-  if (visitID) return;
+  if (visitID || unloading) return;
 
   var { visit } = JSON.parse(response);
   if (visit) {

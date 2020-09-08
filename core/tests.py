@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.exceptions import NotFound, ParseError, ValidationError
 from rest_framework.test import APITestCase
 
-from core.models import Action, Page, Site, Visit
+from .models import Action, Page, Site, Visit
 from core.serializers import ActionSerializer, FieldsFilterMixin, VisitSerializer
 
 
