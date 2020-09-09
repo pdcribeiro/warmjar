@@ -40,18 +40,13 @@ class VisitSerializer(FieldsFilterMixin, ModelSerializer):
     page = PrimaryKeyRelatedField(
         queryset=Page.objects.all(), required=False)  # read_only=True instead?
     previous = PrimaryKeyRelatedField(
-        queryset=Visit.objects.all(), allow_null=True)  # TODO filter by same user as current visit
+        queryset=Visit.objects.all(), allow_null=True, required=False)  # TODO filter by same user as current visit
     next = PrimaryKeyRelatedField(read_only=True)
-    actions = ActionSerializer(many=True)
+    actions = ActionSerializer(many=True, required=False)
 
     class Meta:
         model = Visit
         fields = ['id', 'started', 'page', 'previous', 'next', 'actions']
-
-    def create(self, validated_data):
-        visit_data = {k: validated_data[k] for k in ['page', 'previous']}
-        instance = Visit.objects.create(**visit_data)
-        return self.update(instance, validated_data)
 
     def update(self, instance, validated_data):
         actions = [Action(**data) for data in validated_data['actions']]

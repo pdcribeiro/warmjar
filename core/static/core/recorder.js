@@ -1,14 +1,21 @@
-var MAX_ACTIONS_LENGTH = 50;
+const ACTIONS_LENGTH_TRIGGER = 50;
+const BASE_URL = 'http://localhost:8000/api/visits/';
+const MEDIA_TYPE = 'text/plain';
 
 var visitID = null;
-var prevVisitID;
 var actions = [];
 var loaded = new Date();
-var unloading = false;
 
 function init() {
-  prevVisitID = sessionStorage.getItem('warmjar.visitID') || null;
   startRecording();
+  var previousVisitID = sessionStorage.getItem('warmjar.visitID') || null;
+  fetchVisitID(previousVisitID)
+    .then(id => {
+      // console.log('visitID:', id);
+      visitID = id;
+      sessionStorage.setItem('warmjar.visitID', id);
+    })
+    .catch(error => console.error('Failed to fetch visitID.', error));
 }
 init();
 
@@ -16,19 +23,39 @@ function startRecording() {
   window.addEventListener('mousemove', handleMouseMove);
   window.addEventListener('mousedown', handleMouseDown);
   window.addEventListener('mouseup', handleMouseUp);
-  // window.addEventListener('keydown', handleKeyDown);
-  // window.addEventListener('keyup', handleKeyUp);
   window.addEventListener('unload', handleUnload);
 }
 
-/* function stopRecording() {
-  window.removeEventListener('mousemove', handleMouseMove);
-  window.removeEventListener('mousedown', handleMouseDown);
-  window.removeEventListener('mouseup', handleMouseUp);
-  // window.removeEventListener('keydown', handleKeyDown);
-  // window.removeEventListener('keyup', handleKeyUp);
-  // window.removeEventListener('unload', handleUnload)
-} */
+function fetchVisitID(previousVisitID) {
+  var data = { url: window.location.href, previous: previousVisitID };
+  // console.log('fetching visit id...', data);
+  return postJSON(BASE_URL, data).then(response => response.visit);
+}
+
+function postJSON(url, data) {
+  var req = new XMLHttpRequest();
+  req.open('POST', url);
+  req.setRequestHeader('Content-Type', MEDIA_TYPE);
+
+  var promise = new Promise(function (resolve, reject) {
+    req.onload = function () {
+      if (200 <= req.status <= 299) {
+        resolve(JSON.parse(req.responseText));
+      }
+      reject('Request failed (' + req.status + ').');
+    };
+    req.onerror = function () {
+      reject('Request failed (' + req.status + ').');
+    };
+    setTimeout(function () {
+      reject('Request timed out.');
+    }, 5000);
+  });
+
+  req.send(JSON.stringify(data));
+
+  return promise;
+}
 
 function handleMouseMove(event) {
   createMouseAction('mm', event);
@@ -46,87 +73,27 @@ function createMouseAction(type, event) {
   });
 }
 
-/* function handleKeyDown(event) {
-  createKeyAction('kd', event);
-}
-function handleKeyUp(event) {
-  createKeyAction('ku', event);
-}
-function createKeyAction(type, event) {
-  createAction(type, { key: event.key });
-} */
-
-function handleUnload() {
-  unloading = true;
-  sendActions(actions);
-}
-
 function createAction(type, values) {
-  actions.push({
-    type,
-    ...values,
-    performed: new Date() - loaded,
-  });
-
-  if (actions.length == MAX_ACTIONS_LENGTH) {
-    sendActions(actions.splice(0, MAX_ACTIONS_LENGTH));
+  actions.push({ type, ...values, performed: new Date() - loaded });
+  if (actions.length === ACTIONS_LENGTH_TRIGGER) {
+    sendActions(actions.splice(0, ACTIONS_LENGTH_TRIGGER));
   }
 }
 
 function sendActions(actions) {
-  var url = 'http://localhost:8000/api/visits/';
-  var data = { actions };
-  if (visitID) {
-    url += visitID + '/';
-  } else {
-    data = { ...data, url: window.location.href, previous: prevVisitID };
-  }
-  console.log(
-    'sending actions...',
-    { ...data, actions: [] },
-    actions.slice(0, 5)
+  // console.log('sending actions...', actions.slice(0, 5));
+  postJSON(getURL(), { actions }).catch(error =>
+    console.error('Failed to send actions.', error)
   );
-  sendJSON(url, data)
-    .then(handleNewVisitID)
-    .catch(error => console.error('Failed to send actions.', error));
 }
 
-function sendJSON(url, data) {
-  // if (unloading) {
-    var blob = new Blob([JSON.stringify(data)], { type: 'text/plain' });
-    navigator.sendBeacon(url, blob);
-    return;
-  // }
-
-  var req = new XMLHttpRequest();
-  req.open('POST', url);
-  req.setRequestHeader('Content-Type', 'application/json');
-
-  var promise = new Promise(function (resolve, reject) {
-    req.onload = function () {
-      resolve(req.responseText);
-    };
-    req.onerror = function () {
-      reject('Request failed.');
-    };
-    setTimeout(function () {
-      reject('Request timed out.');
-    }, 5000);
-  });
-
-  req.send(JSON.stringify(data));
-
-  return promise;
+function getURL() {
+  return BASE_URL + visitID + '/';
 }
 
-function handleNewVisitID(response) {
-  console.log('Sent actions. Server replied with:', response);
-  if (visitID || unloading) return;
-
-  var { visit } = JSON.parse(response);
-  if (visit) {
-    visitID = visit;
-    prevVisitID = null;
-    sessionStorage.setItem('warmjar.visitID', visitID);
+function handleUnload() {
+  if (visitID) {
+    var blob = new Blob([JSON.stringify({ actions })], { type: MEDIA_TYPE });
+    navigator.sendBeacon(getURL(), blob);
   }
 }

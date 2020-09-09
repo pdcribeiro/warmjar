@@ -73,10 +73,10 @@ class Visit(models.Model):
         'self', on_delete=models.CASCADE, null=True, related_name='next')
 
     class Meta:
-        ordering = ['page', '-started']
+        ordering = ['-started']
 
     def __str__(self):
-        return f'{self.started}'
+        return f'[{self.id}] {self.started}'
 
 
 class Action(models.Model):
@@ -95,6 +95,7 @@ class Action(models.Model):
 
     class Meta:
         ordering = ['visit', 'performed']
+        indexes = [models.Index(fields=['performed'])]
 
     def __str__(self):
         return f'{self.get_type_display()} on {self.performed}'

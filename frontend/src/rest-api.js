@@ -24,6 +24,10 @@ export function deleteVisit(id) {
   return axios.delete(`/api/visits/${id}/`);
 }
 
-export function getActionList(visitID) {
-  return axios.get(`/api/visits/${visitID}/actions/`).then(data => data.results);
+export function getActionList(visitID, nextCursor) {
+  let url = `/api/visits/${visitID}/actions/`;
+  if (nextCursor !== null) {
+    url += '?cursor=' + nextCursor;
+  }
+  return axios.get(url);
 }

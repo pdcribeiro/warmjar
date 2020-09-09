@@ -1,30 +1,62 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-import {getActionList } from '../rest-api';
+import { getActionList } from '../rest-api';
 
 let startedPlaying = null;
 // let pausedPlaying = new Date(0);
 let timer = null;
-let actions = [];
 let actionIndex = 0;
 
+let visits = {};
+let currentVisit = null;
+
 function usePlayer() {
-  const [visit, setVisit] = useState(null);
+  const [selectedVisit, setSelectedVisit] = useState(null);
   const [playing, setPlaying] = useState(false);
   const [mousePosition, setMousePosition] = useState({});
   const [mouseDown, setMouseDown] = useState(false);
 
   useEffect(() => {
-    if (visit) {
-      getActionList(visit).then(newActions => {
-        actions = newActions;
-        // console.log(actions.slice(0, 10));
-        reset();
-      });
+    console.log('new visit selected', selectedVisit);
+    visits = {};
+    if (selectedVisit) {
+      console.log('fetching actions...');
+      fetchActions(selectedVisit).then(reset);
     }
-  }, [visit]);
+  }, [selectedVisit]);
+
+  function fetchActions(visitID, recursionDepth = 0) {
+    const isNewVisit = visits[visitID] === undefined;
+    const visit = getVisit(visitID);
+
+    return getActionList(visitID, visit.nextCursor).then(
+      ({ results, next, nextVisit }) => {
+        visit.actions = visit.actions.concat(results);
+        if (next) {
+          console.log('next cursor received', next);
+          visit.nextCursor = next;
+        } else if (nextVisit) {
+          console.log('next visit ID received', nextVisit);
+          visit.nextVisit = nextVisit;
+          if (isNewVisit && recursionDepth < 5) {
+            fetchActions(nextVisit, recursionDepth + 1);
+          }
+        }
+      }
+    );
+  }
+
+  function getVisit(visitID) {
+    if (visits[visitID] === undefined) {
+      visits[visitID] = { actions: [], nextCursor: null, nextVisit: null };
+    }
+    return visits[visitID];
+  }
 
   function reset() {
+    console.log('resetting...');
+    currentVisit = selectedVisit;
+    const { actions } = getVisit(selectedVisit);
     setMouseDown(false);
     const firstMouseMoveAction = actions.find(a => a.type === 'mm');
     if (firstMouseMoveAction) {
@@ -33,11 +65,11 @@ function usePlayer() {
   }
 
   function play() {
-    if (!playing && actions) {
+    if (!playing) {
       startedPlaying = new Date();
       timer = setInterval(playActions, 10);
       setPlaying(true);
-      // console.log('Started playing.');
+      // console.log('started playing');
     }
   }
 
@@ -46,12 +78,23 @@ function usePlayer() {
     if (action !== null) {
       // console.log('playing action...', action);
       playAction(action);
+
+      const { actions, nextCursor, nextVisit } = getVisit(currentVisit);
+      if (actionIndex === Math.floor(0.75 * actions.length)) {
+        console.log('actions almost finished', currentVisit);
+        fetchMoreActions(nextCursor, nextVisit);
+      }
+      // TODO check if autoplay is enabled and stop/continue playing accordingly.
+      else if (actionIndex === actions.length - 1 && nextVisit) {
+        switchToVisit(nextVisit);
+        console.log('switched to next visit', nextVisit);
+      }
     }
   }
 
   function getNextAction() {
+    const { actions } = getVisit(currentVisit);
     const now = new Date() - startedPlaying;
-    // console.log('now', now);
 
     for (; actionIndex < actions.length; actionIndex++) {
       const action = actions[actionIndex];
@@ -67,7 +110,7 @@ function usePlayer() {
 
       // Skip to the latest mouse move action.
       if (
-        actionIndex + 1 === actions.length ||
+        actionIndex === actions.length - 1 ||
         actions[actionIndex + 1].performed > now
       ) {
         return action;
@@ -75,7 +118,7 @@ function usePlayer() {
     }
 
     // Finished playing actions.
-    // console.log('Finished playing.');
+    console.log('actions finished');
     clearInterval(timer);
     actionIndex = 0;
     setPlaying(false);
@@ -83,7 +126,7 @@ function usePlayer() {
   }
 
   function playAction(action) {
-    // console.log('playing action', action);
+    // console.log('playing action...', action);
     const actionFunction = {
       mm: action => setMousePosition(action),
       md: () => setMouseDown(true),
@@ -98,24 +141,43 @@ function usePlayer() {
     actionIndex++;
   }
 
+  function fetchMoreActions(nextCursor, nextVisit) {
+    if (nextCursor !== null) {
+      console.log('fetching more actions...');
+      fetchActions(currentVisit);
+    } else if (nextVisit !== null && !visits[nextVisit]?.actions) {
+      console.log('fetching next visit actions...', nextVisit);
+      fetchActions(nextVisit);
+    }
+  }
+
+  function switchToVisit(visitID) {
+    currentVisit = visitID;
+    startedPlaying = new Date();
+    actionIndex = 0;
+    setTimeout(() => setMouseDown(false), 100);
+  }
+
   function stop() {
     clearInterval(timer);
     reset();
     actionIndex = 0;
     setPlaying(false);
-    // console.log('Stopped playing.');
+    // console.log('stopped playing');
   }
 
   // TODO pause logic
   function pause() {
-    clearInterval(timer);
-    setPlaying(false);
-    // console.log('Paused playing.');
+    if (playing) {
+      clearInterval(timer);
+      setPlaying(false);
+      // console.log('paused playing');
+    }
   }
 
   return {
-    visit,
-    setVisit,
+    visit: selectedVisit,
+    setVisit: setSelectedVisit,
     playing,
     mouse: { position: mousePosition, down: mouseDown },
     play,

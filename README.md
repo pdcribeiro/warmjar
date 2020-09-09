@@ -2,8 +2,15 @@
 
 ## Frontend
 
-Load
-* Get user from cookie
+Authentication
+* On load
+  - get user from cookie
+  - set user state variable
+* On login
+  - get user from response
+  - set user state variable
+* On logout
+  - unset user state variable
 
 
 ## REST API
@@ -32,10 +39,7 @@ Retrieve list of actions related to visit
 ## TODO
 
 WIP
-* actions pagination
-* autoplay next visit
-* setup demo on aws
-  - nginx routing
+* option to autoplay next visit
 
 Record
 * handle different sized windows
@@ -111,6 +115,8 @@ Play
 * make browser prompt to save login details
 
 General
+* setup demo on aws
+  - nginx routing to provide demo site
 * REST subscription? Long pooling? etc.
 * use GraphQL instead of REST
 * handle zoom (record and play)

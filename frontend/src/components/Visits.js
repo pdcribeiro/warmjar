@@ -26,6 +26,7 @@ export function VisitList({ visits, onDelete }) {
   }
 
   async function handleDelete(event, visitID) {
+    setVisit(visit => visitID === visit ? null : visit);
     deleteVisit(visitID).then(onDelete);
     event.stopPropagation();
   }

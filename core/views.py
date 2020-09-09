@@ -145,3 +145,11 @@ class ActionList(ListAPIView):
         return Action.objects.filter(
             visit=self.kwargs['visit_id'],
             visit__page__site__owner=self.request.user)
+
+    def get(self, request, visit_id):
+        response = super().get(request)
+        if response.data['next'] is None:
+            visit = Visit.objects.get_or_404(id=visit_id)
+            if hasattr(visit, 'next'):
+                response.data['nextVisit'] = visit.next.id
+        return response
