@@ -25,9 +25,11 @@ yarn-error.log*
 
 .vscode/
 *.code-workspace
-*.sqlite3
-*.pyc
 
 migrations/
-.coverage
 htmlcov/
+*.sqlite3
+*.pyc
+.coverage
+
+*.js.local
