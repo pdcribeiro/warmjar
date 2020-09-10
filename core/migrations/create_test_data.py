@@ -15,8 +15,8 @@ def create_test_data(apps, schema_editor):
     user = User.objects.create(username='user', password=make_password('user'))
 
     Site = apps.get_model('core', 'Site')
-    Site.objects.create(url='127.0.0.1:8001', owner=user)
-    Site.objects.create(url='127.0.0.1:8002', owner=admin)
+    Site.objects.create(url='locallibrary.ddns.net', owner=user)
+    #Site.objects.create(url='127.0.0.1:8002', owner=admin)
 
 
 class Migration(migrations.Migration):

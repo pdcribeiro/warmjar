@@ -25,7 +25,7 @@ SECRET_KEY = '0tltgz7jj7+)7b*^19pgjca)1-=c&hwgbn#z3i#muzk(!_dyu7'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'warmjar.ddns.net']
 
 
 # Application definition

@@ -1,5 +1,5 @@
 const ACTIONS_LENGTH_TRIGGER = 50;
-const BASE_URL = 'http://localhost:8000/api/visits/';
+const BASE_URL = 'http://warmjar.ddns.net/api/visits/';
 const MEDIA_TYPE = 'text/plain';
 
 var visitID = null;
@@ -75,7 +75,7 @@ function createMouseAction(type, event) {
 
 function createAction(type, values) {
   actions.push({ type, ...values, performed: new Date() - loaded });
-  if (actions.length === ACTIONS_LENGTH_TRIGGER) {
+  if (actions.length === ACTIONS_LENGTH_TRIGGER && visitID) {
     sendActions(actions.splice(0, ACTIONS_LENGTH_TRIGGER));
   }
 }

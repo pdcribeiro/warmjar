@@ -39,7 +39,7 @@ Retrieve list of actions related to visit
 ## TODO
 
 WIP
-* option to autoplay next visit
+* record DOM
 
 Record
 * handle different sized windows
@@ -49,8 +49,8 @@ Record
   * local/session storage?
 
 Play
-* Pagination
-* Option to autoplay next page
+* sites, pages and visits pagination
+* option to autoplay next visit
 
 General
 * e2e tests with cypress
@@ -100,9 +100,9 @@ Record
 * minify
 
 Play
-* Get API structure when checking out auth?
-* Improve auth system
-  - Firebase?
+* get API structure when checking out auth?
+* improve auth system
+  - firebase?
 * scrollbar
 * option to maximize player
 * option to draw pointer path
@@ -115,8 +115,6 @@ Play
 * make browser prompt to save login details
 
 General
-* setup demo on aws
-  - nginx routing to provide demo site
 * REST subscription? Long pooling? etc.
 * use GraphQL instead of REST
 * handle zoom (record and play)
