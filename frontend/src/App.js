@@ -3,6 +3,7 @@ import Cookies from 'js-cookie';
 import { Redirect } from '@reach/router';
 import React from 'react';
 
+import { Header } from './components/Header';
 import { Login } from './components/Login';
 import { Main } from './components/Main';
 import { useAnchorElements } from './hooks/use-anchor-elements';
@@ -43,7 +44,8 @@ function App() {
 
   return (
     <PlayerProvider>
-      <Main logout={logout} />
+      <Header logout={logout} />
+      <Main />
     </PlayerProvider>
   );
 }

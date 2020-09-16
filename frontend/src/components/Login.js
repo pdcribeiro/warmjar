@@ -1,23 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 
-const Styled = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 25vh;
-
-  form {
-    display: flex;
-    flex-direction: column;
-  }
-
-  input,
-  button {
-    margin: 10px 0;
-  }
-`;
-
 export function Login({ login }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -51,3 +34,20 @@ export function Login({ login }) {
     </Styled>
   );
 }
+
+const Styled = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 25vh;
+
+  form {
+    display: flex;
+    flex-direction: column;
+  }
+
+  input,
+  button {
+    margin: 10px 0;
+  }
+`;

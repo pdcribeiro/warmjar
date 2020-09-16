@@ -1,6 +1,17 @@
 import React from 'react';
 import styled from 'styled-components';
 
+export function Header({ logout }) {
+  return (
+    <Styled>
+      <a href="/">
+        <h1>Warmjar</h1>
+      </a>
+      <button onClick={logout}>Logout</button>
+    </Styled>
+  );
+}
+
 const Styled = styled.div`
   display: flex;
   align-items: center;
@@ -18,14 +29,3 @@ const Styled = styled.div`
     margin-left: auto;
   }
 `;
-
-export function Header({ logout }) {
-  return (
-    <Styled>
-      <a href="/">
-        <h1>Warmjar</h1>
-      </a>
-      <button onClick={logout}>Logout</button>
-    </Styled>
-  );
-}

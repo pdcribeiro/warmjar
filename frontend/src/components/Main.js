@@ -2,10 +2,26 @@ import { Redirect, Router } from '@reach/router';
 import React from 'react';
 import styled from 'styled-components';
 
-import { Header } from './Header';
 import { PageDetail } from './Pages';
 import { Player } from './Player';
 import { Sites } from './Sites';
+
+export function Main() {
+  return (
+    <Styled>
+      <Router>
+      {/* <Router style={{ width: '100%' }}> */}
+        <Sites path="sites/*" />
+        <PageDetail path="pages/:pageID" />
+
+        <NotFound default />
+        <Redirect from="/" to="/sites" noThrow />
+        <Redirect from="/login" to="/sites" noThrow />
+      </Router>
+      <Player />
+    </Styled>
+  );
+}
 
 const Styled = styled.div`
   display: flex;
@@ -18,26 +34,6 @@ const Styled = styled.div`
     margin-right: 20px;
   }
 `;
-
-export function Main({ logout }) {
-  return (
-    <>
-      <Header logout={logout} />
-      <Styled>
-        <Router>
-        {/* <Router style={{ width: '100%' }}> */}
-          <Sites path="sites/*" />
-          <PageDetail path="pages/:pageID" />
-
-          <NotFound default />
-          <Redirect from="/" to="/sites" noThrow />
-          <Redirect from="/login" to="/sites" noThrow />
-        </Router>
-        <Player />
-      </Styled>
-    </>
-  );
-}
 
 function NotFound() {
   return <h2>Not found</h2>;
