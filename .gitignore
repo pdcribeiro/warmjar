@@ -28,6 +28,7 @@ yarn-error.log*
 *.local.*
 
 migrations/
+static/
 htmlcov/
 *.sqlite3
 *.pyc
