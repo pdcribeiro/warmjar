@@ -13,7 +13,7 @@ export function Login({ login }) {
   }
 
   return (
-    <Styled>
+    <StyledDiv>
       <form onSubmit={handleSubmit}>
         <input
           type="text"
@@ -31,11 +31,11 @@ export function Login({ login }) {
         />
         <button type="submit">Login</button>
       </form>
-    </Styled>
+    </StyledDiv>
   );
 }
 
-const Styled = styled.div`
+const StyledDiv = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;

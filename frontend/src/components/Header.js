@@ -3,16 +3,16 @@ import styled from 'styled-components';
 
 export function Header({ logout }) {
   return (
-    <Styled>
+    <StyledDiv>
       <a href="/">
         <h1>Warmjar</h1>
       </a>
       <button onClick={logout}>Logout</button>
-    </Styled>
+    </StyledDiv>
   );
 }
 
-const Styled = styled.div`
+const StyledDiv = styled.div`
   display: flex;
   align-items: center;
   box-sizing: border-box;

@@ -40,10 +40,7 @@ Retrieve list of actions related to visit
 
 WIP
 * record and render DOM
-  - save style tags
-  - save third-party stylesheet link tags
-  - fetch and save same-origin stylesheets
-  - render in iframe to avoid adding stylesheets to main site
+  - fetch and save same-origin stylesheets necessary?
 
 Record
 * handle different sized windows
@@ -51,7 +48,7 @@ Record
   - detect and send resize events
 * keep same visit after refresh
   * local/session storage?
-* transcompile with babel
+* transcompile with Babel
 
 Play
 * sites, pages and visits pagination
@@ -102,8 +99,7 @@ Record
 * api key
   - limit action creation to authorized users
   - associate with user
-* make compatible with IE
-  - use Babel
+* transcompile with Babel
 * minify
 * use a MutationObserver to wait for changes to stop when loading page
 
@@ -121,6 +117,7 @@ Play
 * confirm delete
 * allow admin to access all data
 * make browser prompt to save login details
+* review PlayerContent styles
 
 General
 * REST subscription? Long pooling? etc.

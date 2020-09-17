@@ -67,6 +67,7 @@ class Page(models.Model):
 
 class Visit(models.Model):
     started = models.DateTimeField(auto_now_add=True)
+    dom = models.TextField()
     page = models.ForeignKey(
         Page, on_delete=models.CASCADE, related_name='visits')
     previous = models.OneToOneField(

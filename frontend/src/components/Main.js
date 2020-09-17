@@ -8,7 +8,7 @@ import { Sites } from './Sites';
 
 export function Main() {
   return (
-    <Styled>
+    <StyledDiv>
       <Router>
       {/* <Router style={{ width: '100%' }}> */}
         <Sites path="sites/*" />
@@ -19,11 +19,11 @@ export function Main() {
         <Redirect from="/login" to="/sites" noThrow />
       </Router>
       <Player />
-    </Styled>
+    </StyledDiv>
   );
 }
 
-const Styled = styled.div`
+const StyledDiv = styled.div`
   display: flex;
   justify-content: space-between;
   /* align-items: flex-start; */

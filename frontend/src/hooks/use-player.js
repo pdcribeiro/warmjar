@@ -13,15 +13,18 @@ let currentVisit = null;
 function usePlayer() {
   const [selectedVisit, setSelectedVisit] = useState(null);
   const [playing, setPlaying] = useState(false);
+  const [domString, setDOMString] = useState(null);
   const [mousePosition, setMousePosition] = useState({});
   const [mouseDown, setMouseDown] = useState(false);
 
   useEffect(() => {
-    console.log('new visit selected', selectedVisit);
+    // console.log('new visit selected', selectedVisit);
     visits = {};
     if (selectedVisit) {
-      console.log('fetching actions...');
+      // console.log('fetching actions...');
       fetchActions(selectedVisit).then(reset);
+    } else {
+      setDOMString(null);
     }
   }, [selectedVisit]);
 
@@ -30,13 +33,17 @@ function usePlayer() {
     const visit = getVisit(visitID);
 
     return getActionList(visitID, visit.nextCursor).then(
-      ({ results, next, nextVisit }) => {
+      ({ dom, css, results, next, nextVisit }) => {
+        dom && (visit.dom = dom);
+        css && (visit.css = css);
+
         visit.actions = visit.actions.concat(results);
-        if (next) {
-          console.log('next cursor received', next);
-          visit.nextCursor = next;
-        } else if (nextVisit) {
-          console.log('next visit ID received', nextVisit);
+
+        // next && console.log('next cursor received', next);
+        visit.nextCursor = next;
+
+        if (nextVisit) {
+          // console.log('next visit ID received', nextVisit);
           visit.nextVisit = nextVisit;
           if (isNewVisit && recursionDepth < 5) {
             fetchActions(nextVisit, recursionDepth + 1);
@@ -54,9 +61,10 @@ function usePlayer() {
   }
 
   function reset() {
-    console.log('resetting...');
+    // console.log('resetting...');
     currentVisit = selectedVisit;
-    const { actions } = getVisit(selectedVisit);
+    const { dom, actions } = getVisit(selectedVisit);
+    setDOMString(dom);
     setMouseDown(false);
     const firstMouseMoveAction = actions.find(a => a.type === 'mm');
     if (firstMouseMoveAction) {
@@ -74,20 +82,24 @@ function usePlayer() {
   }
 
   function playActions() {
+    const { dom, actions, nextCursor, nextVisit } = getVisit(currentVisit);
+    if (actionIndex === 0) {
+      setDOMString(dom);
+    }
+
     const action = getNextAction();
     if (action !== null) {
       // console.log('playing action...', action);
       playAction(action);
 
-      const { actions, nextCursor, nextVisit } = getVisit(currentVisit);
       if (actionIndex === Math.floor(0.75 * actions.length)) {
-        console.log('actions almost finished', currentVisit);
+        // console.log('actions almost finished', currentVisit);
         fetchMoreActions(nextCursor, nextVisit);
       }
       // TODO check if autoplay is enabled and stop/continue playing accordingly.
       else if (actionIndex === actions.length - 1 && nextVisit) {
         switchToVisit(nextVisit);
-        console.log('switched to next visit', nextVisit);
+        // console.log('switched to next visit', nextVisit);
       }
     }
   }
@@ -118,7 +130,7 @@ function usePlayer() {
     }
 
     // Finished playing actions.
-    console.log('actions finished');
+    // console.log('actions finished');
     clearInterval(timer);
     actionIndex = 0;
     setPlaying(false);
@@ -143,10 +155,10 @@ function usePlayer() {
 
   function fetchMoreActions(nextCursor, nextVisit) {
     if (nextCursor !== null) {
-      console.log('fetching more actions...');
+      // console.log('fetching more actions...', nextCursor, nextVisit);
       fetchActions(currentVisit);
     } else if (nextVisit !== null && !visits[nextVisit]?.actions) {
-      console.log('fetching next visit actions...', nextVisit);
+      // console.log('fetching next visit actions...', nextVisit);
       fetchActions(nextVisit);
     }
   }
@@ -179,6 +191,7 @@ function usePlayer() {
     visit: selectedVisit,
     setVisit: setSelectedVisit,
     playing,
+    dom: domString,
     mouse: { position: mousePosition, down: mouseDown },
     play,
     pause,

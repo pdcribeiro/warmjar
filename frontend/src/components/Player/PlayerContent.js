@@ -1,21 +1,65 @@
 import React, { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 
+import { IFrame } from './IFrame';
 import { usePlayer } from '../../hooks/use-player';
 import cursor from './cursor.svg';
 
-const Styled = styled.div`
+export function PlayerContent() {
+  const selfRef = useRef();
+  const [layout, setLayout] = useState({
+    size: { width: 1366, height: 642 }, //TODO
+    scale: 0,
+    margin: { x: 0, y: 0 },
+  });
+  const { mouse } = usePlayer();
+
+  useEffect(() => {
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  function handleResize() {
+    if (selfRef.current) {
+      const frameWidth = selfRef.current.offsetWidth;
+      const frameHeight = selfRef.current.offsetHeight;
+
+      setLayout(({ size, scale }) => ({
+        size,
+        scale: frameWidth / size.width,
+        margin: { x: 0, y: (frameHeight - size.height * scale) / 2 },
+      }));
+    }
+  }
+
+  useEffect(handleResize, [selfRef.current]);
+
+  return (
+    <StyledDiv {...layout} ref={selfRef}>
+      <div>
+        <IFrame>
+          <Cursor {...mouse} />
+        </IFrame>
+      </div>
+    </StyledDiv>
+  );
+}
+
+const StyledDiv = styled.div`
   width: 100%;
   padding-top: 56.25%;
   margin-bottom: 20px;
   outline: 1px solid grey;
   position: relative;
   overflow: hidden;
+  pointer-events: none;
 
   > div {
     width: ${props => props.size.width}px;
     height: ${props => props.size.height}px;
-    background-color: #eee;
+    /* background-color: #eee; */
     position: absolute;
     top: ${props => props.margin.y}px;
     left: ${props => props.margin.x}px;
@@ -51,43 +95,3 @@ const Cursor = styled.div`
     `}
   }
 `;
-
-export function PlayerContent() {
-  const selfRef = useRef();
-  const [layout, setLayout] = useState({
-    size: { width: 1366, height: 642 }, //TODO
-    scale: 0,
-    margin: { x: 0, y: 0 },
-  });
-  const { mouse } = usePlayer();
-
-  useEffect(() => {
-    window.addEventListener('resize', handleResize);
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
-
-  function handleResize() {
-    if (selfRef.current) {
-      const frameWidth = selfRef.current.offsetWidth;
-      const frameHeight = selfRef.current.offsetHeight;
-
-      setLayout(({ size, scale }) => ({
-        size,
-        scale: frameWidth / size.width,
-        margin: { x: 0, y: (frameHeight - size.height * scale) / 2 },
-      }));
-    }
-  }
-
-  useEffect(handleResize, [selfRef.current]);
-
-  return (
-    <Styled {...layout} ref={selfRef}>
-      <div>
-        <Cursor {...mouse} />
-      </div>
-    </Styled>
-  );
-}

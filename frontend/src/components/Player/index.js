@@ -13,14 +13,14 @@ export function Player() {
   }
 
   return (
-    <Styled>
+    <StyledDiv>
       <PlayerControls />
       <PlayerContent />
-    </Styled>
+    </StyledDiv>
   );
 }
 
-const Styled = styled.div`
+const StyledDiv = styled.div`
   width: 100%;
   height: 0;
   margin-top: 20px;

@@ -1,3 +1,5 @@
+import re
+
 from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
@@ -97,11 +99,13 @@ class VisitCreate(CreateAPIView):
 
     def perform_create(self, serializer):
         url = self.request.data.get('url')
-        if url is None:
+        dom = self.request.data.get('dom')
+        if None in [url, dom]:
             raise ParseError()
 
         page = VisitCreate.get_page(url)
-        serializer.save(page=page)
+        parsed_dom = VisitCreate.parse_dom(dom, page.site.url)
+        serializer.save(page=page, dom=parsed_dom)
 
     @staticmethod
     def get_page(url):
@@ -117,6 +121,15 @@ class VisitCreate(CreateAPIView):
 
         site = Site.objects.get_or_404(url=site_url)
         return Page.objects.create(path=path, site=site)
+
+    @staticmethod
+    def parse_dom(dom, domain):
+        # Remove script tags.
+        parsed_dom = re.sub('<script[^<]*</script>\n?', '', dom)
+        # parsed_dom = re.sub('<link[^>]*rel="stylesheet"[^>]*>\n?', '', parsed_dom)
+
+        # Make relative urls absolute.
+        return re.sub('(src|href)="(/[^"]+)"', rf'\1="//{domain}\2"', parsed_dom)
 
 
 class VisitDetail(mixins.UpdateModelMixin, generics.DestroyAPIView):
@@ -148,8 +161,15 @@ class ActionList(ListAPIView):
 
     def get(self, request, visit_id):
         response = super().get(request)
-        if response.data['next'] is None:
+        visit = None
+
+        if request.query_params.get('cursor') is None:
             visit = Visit.objects.get_or_404(id=visit_id)
+            response.data['dom'] = visit.dom
+
+        if response.data['next'] is None:
+            visit = visit or Visit.objects.get_or_404(id=visit_id)
             if hasattr(visit, 'next'):
                 response.data['nextVisit'] = visit.next.id
+
         return response

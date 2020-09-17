@@ -2,54 +2,74 @@ const ACTIONS_LENGTH_TRIGGER = 50;
 const BASE_URL = 'http://warmjar.ddns.net/api/visits/';
 const MEDIA_TYPE = 'text/plain';
 
-var visitID = null;
-var actions = [];
-var loaded = new Date();
+let visitID = null;
+let actions = [];
+let loaded = new Date();
 
 function init() {
-  startRecording();
-  var previousVisitID = sessionStorage.getItem('warmjar.visitID') || null;
-  fetchVisitID(previousVisitID)
-    .then(id => {
-      // console.log('visitID:', id);
-      visitID = id;
-      sessionStorage.setItem('warmjar.visitID', id);
-    })
-    .catch(error => console.error('Failed to fetch visitID.', error));
-}
-init();
-
-function startRecording() {
+  document.addEventListener('DOMContentLoaded', setup);
   window.addEventListener('mousemove', handleMouseMove);
   window.addEventListener('mousedown', handleMouseDown);
   window.addEventListener('mouseup', handleMouseUp);
   window.addEventListener('unload', handleUnload);
 }
+init();
 
-function fetchVisitID(previousVisitID) {
-  var data = { url: window.location.href, previous: previousVisitID };
+async function setup() {
+  let previous = sessionStorage.getItem('warmjar.visitID') || null;
+  let dom = new XMLSerializer().serializeToString(document);
+  // let dom = document.documentElement.outerHTML;
+
+  // const { css, stylesheets } = await getCSS();
+  // console.log(css.slice(0, 50), stylesheets);
+
+  let data = { url: window.location.href, previous, dom }; //, css, stylesheets };
   // console.log('fetching visit id...', data);
-  return postJSON(BASE_URL, data).then(response => response.visit);
+  postJSON(BASE_URL, data)
+    .then(({ visit }) => {
+      // console.log('visitID:', visit);
+      visitID = visit;
+      sessionStorage.setItem('warmjar.visitID', visit);
+    })
+    .catch(error => console.error('Failed to send initial state.', error));
+}
+
+function getCSS() {
+  let public = [];
+  let private = [];
+  Array.from(document.styleSheets).map(sheet => {
+    if (sheet.href) {
+      if (sheet.href.indexOf(window.location.origin) === 0) {
+        private.push(sheet.href);
+      } else {
+        public.push(sheet.href);
+      }
+      // TODO handle private CDNs
+    }
+  });
+
+  return Promise.all(
+    private.map(url => fetch(url).then(resp => resp.text()))
+  ).then(sheets => ({
+    css: sheets.join('\n'),
+    stylesheets: public,
+  }));
 }
 
 function postJSON(url, data) {
-  var req = new XMLHttpRequest();
+  let req = new XMLHttpRequest();
   req.open('POST', url);
   req.setRequestHeader('Content-Type', MEDIA_TYPE);
 
-  var promise = new Promise(function (resolve, reject) {
-    req.onload = function () {
+  let promise = new Promise((resolve, reject) => {
+    req.onload = () => {
       if (200 <= req.status <= 299) {
         resolve(JSON.parse(req.responseText));
       }
       reject('Request failed (' + req.status + ').');
     };
-    req.onerror = function () {
-      reject('Request failed (' + req.status + ').');
-    };
-    setTimeout(function () {
-      reject('Request timed out.');
-    }, 5000);
+    req.onerror = () => reject('Request failed (' + req.status + ').');
+    setTimeout(() => reject('Request timed out.'), 5000);
   });
 
   req.send(JSON.stringify(data));
@@ -93,7 +113,7 @@ function getURL() {
 
 function handleUnload() {
   if (visitID) {
-    var blob = new Blob([JSON.stringify({ actions })], { type: MEDIA_TYPE });
+    let blob = new Blob([JSON.stringify({ actions })], { type: MEDIA_TYPE });
     navigator.sendBeacon(getURL(), blob);
   }
 }
