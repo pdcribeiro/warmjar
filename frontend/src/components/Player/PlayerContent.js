@@ -49,11 +49,12 @@ export function PlayerContent() {
 
 const StyledDiv = styled.div`
   width: 100%;
+  /* background-color: #eee; */
   padding-top: 56.25%;
   margin-bottom: 20px;
-  outline: 1px solid grey;
+  /* outline: 1px solid grey; */
   position: relative;
-  overflow: hidden;
+  /* overflow: hidden; */
   pointer-events: none;
 
   > div {

@@ -1,9 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=Cantarell:wght@400;700&family=Ubuntu+Mono:wght@400;700&display=swap');
+
 body {
   /* background-color: hsl(25, 100%, 95%); */
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  /* font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+  'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+  sans-serif; */
+  font-family: 'Cantarell', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #333;
@@ -30,6 +33,7 @@ ul {
 li {
   padding: 5px;
   border-radius: 8px;
+  font-family: 'Ubuntu Mono';
 }
 
 a, li {

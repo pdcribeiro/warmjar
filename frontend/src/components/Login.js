@@ -19,6 +19,7 @@ export function Login({ login }) {
           type="text"
           value={username}
           placeholder="username"
+          autoComplete="username"
           required
           onChange={e => setUsername(e.target.value)}
         />
@@ -26,6 +27,7 @@ export function Login({ login }) {
           type="password"
           value={password}
           placeholder="password"
+          autoComplete="current-password"
           required
           onChange={e => setPassword(e.target.value)}
         />

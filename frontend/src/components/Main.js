@@ -9,8 +9,7 @@ import { Sites } from './Sites';
 export function Main() {
   return (
     <StyledDiv>
-      <Router>
-      {/* <Router style={{ width: '100%' }}> */}
+      <Router style={{ width: 210 }}>
         <Sites path="sites/*" />
         <PageDetail path="pages/:pageID" />
 
@@ -29,10 +28,6 @@ const StyledDiv = styled.div`
   /* align-items: flex-start; */
   flex-wrap: wrap;
   padding: 0px 20px 20px;
-
-  > div:not(:last-child) {
-    margin-right: 20px;
-  }
 `;
 
 function NotFound() {
