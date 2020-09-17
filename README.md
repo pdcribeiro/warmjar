@@ -7,5 +7,5 @@ This is an attempt at reproducing the session recording service offered by [hotj
 
 [http://warmjar.ddns.net](http://warmjar.ddns.net)
 
-Username: user
+Username: user<br/>
 Password: user
