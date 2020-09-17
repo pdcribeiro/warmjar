@@ -5,7 +5,7 @@ export function Header({ logout }) {
   return (
     <StyledDiv>
       <a href="/">
-        <h1>Warmjar</h1>
+        <h1>warmjar</h1>
       </a>
       <button onClick={logout}>Logout</button>
     </StyledDiv>
