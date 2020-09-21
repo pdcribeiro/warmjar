@@ -5,7 +5,7 @@ This is an attempt at reproducing the session recording service offered by [hotj
 
 ## Live demo
 
-[warmjar.pdcribeiro.ddnsgeek.com](http://warmjar.pdcribeiro.ddnsgeek.com)
+[http://warmjar.pdcribeiro.ddnsgeek.com](http://warmjar.pdcribeiro.ddnsgeek.com)
 
 Username: user<br/>
 Password: user
