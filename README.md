@@ -9,3 +9,5 @@ This is an attempt at reproducing the session recording service offered by [hotj
 
 Username: user<br/>
 Password: user
+
+Demo site: [http://locallibrary.ddns.net](http://locallibrary.ddns.net)

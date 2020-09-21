@@ -1,31 +1,33 @@
 import axios from 'axios';
 
+const API_BASE_PATH = '/api/';
+
 export function postLogin(username, password) {
-  return axios.post('/api/auth/login/', { username, password });
+  return axios.post(API_BASE_PATH + 'auth/login/', { username, password });
 }
 
 export function getLogout() {
-  return axios.get('/api/auth/logout/');
+  return axios.get(API_BASE_PATH + 'auth/logout/');
 }
 
 export function getSiteList() {
-  return axios.get('/api/sites/').then(data => data.results);
+  return axios.get(API_BASE_PATH + 'sites/').then(data => data.results);
 }
 
 export function getSite(id) {
-  return axios.get(`/api/sites/${id}/`);
+  return axios.get(API_BASE_PATH + `sites/${id}/`);
 }
 
 export function getPage(id) {
-  return axios.get(`/api/pages/${id}/`);
+  return axios.get(API_BASE_PATH + `pages/${id}/`);
 }
 
 export function deleteVisit(id) {
-  return axios.delete(`/api/visits/${id}/`);
+  return axios.delete(API_BASE_PATH + `visits/${id}/`);
 }
 
 export function getActionList(visitID, nextCursor) {
-  let url = `/api/visits/${visitID}/actions/`;
+  let url = API_BASE_PATH + `visits/${visitID}/actions/`;
   if (nextCursor !== null) {
     url += '?cursor=' + nextCursor;
   }
