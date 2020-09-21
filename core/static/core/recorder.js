@@ -1,5 +1,5 @@
 const ACTIONS_LENGTH_TRIGGER = 50;
-const BASE_URL = 'http://warmjar.ddns.net/api/visits/';
+const BASE_URL = 'http://warmjar.pdcribeiro.ddnsgeek.com/api/visits/';
 const MEDIA_TYPE = 'text/plain';
 
 let visitID = null;
