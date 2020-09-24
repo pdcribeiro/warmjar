@@ -7,9 +7,9 @@ It was developed using Django and React.
 
 ## Live demo
 
-[http://warmjar.pdcribeiro.ddnsgeek.com](http://warmjar.pdcribeiro.ddnsgeek.com)
+[https://warmjar.pdcribeiro.com](https://warmjar.pdcribeiro.com)
 
 Username: user<br/>
 Password: user
 
-Demo site: [http://library.pdcribeiro.ddnsgeek.com](http://library.pdcribeiro.ddnsgeek.com)
+Demo site: [https://library.pdcribeiro.com](https://library.pdcribeiro.com)

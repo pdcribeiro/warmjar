@@ -25,7 +25,9 @@ SECRET_KEY = '0tltgz7jj7+)7b*^19pgjca)1-=c&hwgbn#z3i#muzk(!_dyu7'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = bool(os.environ.get('DJANGO_DEBUG', True))
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'warmjar.pdcribeiro.ddnsgeek.com']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost',
+                 'warmjar.pdcribeiro.com',
+                 'www.warmjar.pdcribeiro.com']
 
 
 # Application definition

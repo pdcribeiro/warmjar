@@ -78,12 +78,12 @@ class CoreTests(APITestCase):
     def test_site_parse_url_method(self):
         TEST_DATA = (
             ((
-                'http://site.com',
+                'https://site.com',
                 'https://site.com',
                 'https://site.com/',
                 'https://site.com/?f=foo',
                 'https://site.com/?f=foo&bar=foobar',
-                'http://site.com/api',
+                'https://site.com/api',
                 'https://site.com/api',
                 'https://site.com/api/',
                 'https://site.com/api/?f=foo',
@@ -97,7 +97,7 @@ class CoreTests(APITestCase):
     def test_page_parse_path_method(self):
         TEST_DATA = (
             # ((
-            #     'http://site.com',
+            #     'https://site.com',
             #     'https://site.com',
             #     'https://site.com/',
             #     'https://site.com/?f=foo',
@@ -105,7 +105,7 @@ class CoreTests(APITestCase):
 
             # ), ''),
             ((
-                'http://site.com/api',
+                'https://site.com/api',
                 'https://site.com/api',
                 'https://site.com/api/',
                 'https://site.com/api/?f=foo',
